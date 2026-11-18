@@ -1,0 +1,276 @@
+/* BDAY.EXE — generated from tokens.json by scripts/build-tokens.mjs. Do not edit. */
+:root, [data-theme="xp"] {
+  --desktop: #3a6fc8;
+  --window: #ece9d8;
+  --window-ink: #000000;
+  --window-muted: #4a4a4a;
+  --titlebar: #0047c7;
+  --titlebar-end: #1f6fde;
+  --titlebar-ink: #ffffff;
+  --frame: #0831d9;
+  --button: #f6f5f0;
+  --button-ink: #000000;
+  --button-border: #003c74;
+  --bevel-light: #ffffff;
+  --bevel-dark: #a7a493;
+  --accent: #2f7d22;
+  --on-accent: #ffffff;
+  --highlight: #316ac5;
+  --on-highlight: #ffffff;
+  --sparkle: #ffd400;
+  --focus: #000000;
+  --answer-a: #c62828;
+  --answer-b: #1b5fc1;
+  --answer-c: #8a5a00;
+  --answer-d: #2e7d32;
+  --on-answer: #ffffff;
+  --correct: #7cff4f;
+  --on-correct: #0b2a00;
+  --wrong: #b00020;
+  --on-wrong: #ffffff;
+  --favourite: #ffd400;
+  --on-favourite: #3a2a00;
+  --bsod: #0000aa;
+  --bsod-ink: #ffffff;
+  --qr-ink: #000000;
+  --qr-paper: #ffffff;
+  --lcd: #c7f0d8;
+  --lcd-ink: #1e2a19;
+  --lcd-muted: #3a4733;
+  --brick-body: #9aa595;
+  --key: #2c3a5a;
+  --key-ink: #e6ebf5;
+  --huat-red: #c8102e;
+  --huat-gold: #ffd34d;
+  --on-huat: #ffffff;
+  --slip-paper: #fff6e0;
+  --slip-ink: #a3122a;
+  --forward-bubble: #dcf8c6;
+  --forward-ink: #14260b;
+  --tissue: #fafaf5;
+  --tissue-ink: #3d3d3d;
+  --slip-red: #d52b1e;
+  --on-slip-red: #ffffff;
+  --slip-gold: #9c7b1f;
+  --on-slip-gold: #ffffff;
+  --receipt-paper: #fcfcf9;
+  --receipt-ink: #1a1a1a;
+  --receipt-watermark: #f7cdd4;
+  --sale: #d23a14;
+  --sale-deep: #a8240a;
+  --on-sale: #ffffff;
+  --sale-yellow: #ffe14d;
+  --on-sale-yellow: #7a1500;
+  --answers: #5b1a8f;
+  --on-answers: #ffffff;
+  --shadow-window: 2px 3px 8px rgba(0,0,0,0.45);
+  --shadow-bevel: inset 1px 1px 0 #ffffff, inset -1px -1px 0 #a7a493;
+  --shadow-pressed: inset 1px 1px 2px rgba(0,0,0,0.4);
+}
+[data-theme="igloo"] {
+  --desktop: #bfe4ff;
+  --window: #ffffff;
+  --window-ink: #0b2e59;
+  --window-muted: #36597f;
+  --titlebar: #0b5aa6;
+  --titlebar-end: #1a74cc;
+  --titlebar-ink: #ffffff;
+  --frame: #0a4d8c;
+  --button: #ffd23f;
+  --button-ink: #3b2a00;
+  --button-border: #a87800;
+  --bevel-light: #fff6c9;
+  --bevel-dark: #c99a00;
+  --accent: #ff8a00;
+  --on-accent: #2b1600;
+  --highlight: #0b5aa6;
+  --on-highlight: #ffffff;
+  --sparkle: #ffd23f;
+  --focus: #0b2e59;
+  --shadow-window: 0 6px 0 #0a4d8c;
+  --shadow-bevel: inset 0 -4px 0 #c99a00;
+  --shadow-pressed: inset 0 3px 0 #c99a00;
+}
+[data-theme="fakebook"] {
+  --desktop: #d8dfea;
+  --window: #ffffff;
+  --window-ink: #333333;
+  --window-muted: #5f5f5f;
+  --titlebar: #3b5998;
+  --titlebar-end: #3b5998;
+  --titlebar-ink: #ffffff;
+  --frame: #29447e;
+  --button: #eceff5;
+  --button-ink: #333333;
+  --button-border: #29447e;
+  --bevel-light: #ffffff;
+  --bevel-dark: #9aa9c8;
+  --accent: #4f68a0;
+  --on-accent: #ffffff;
+  --highlight: #3b5998;
+  --on-highlight: #ffffff;
+  --sparkle: #f7d84a;
+  --focus: #000000;
+  --shadow-window: 0 2px 6px rgba(0,0,0,0.25);
+  --shadow-bevel: inset 0 1px 0 #ffffff;
+  --shadow-pressed: inset 0 1px 2px rgba(0,0,0,0.3);
+}
+[data-theme="monster"] {
+  --desktop: #2a1446;
+  --window: #3d1f66;
+  --window-ink: #ffffff;
+  --window-muted: #d9c8f5;
+  --titlebar: #7ac142;
+  --titlebar-end: #a6e05a;
+  --titlebar-ink: #1d0b33;
+  --frame: #160829;
+  --button: #ffe14d;
+  --button-ink: #1d0b33;
+  --button-border: #160829;
+  --bevel-light: #fff7b3;
+  --bevel-dark: #b89a00;
+  --accent: #ff7a00;
+  --on-accent: #1d0b33;
+  --highlight: #a6e05a;
+  --on-highlight: #1d0b33;
+  --sparkle: #ffe14d;
+  --focus: #ffe14d;
+  --shadow-window: 0 8px 0 #160829;
+  --shadow-bevel: inset 0 -5px 0 #b89a00;
+  --shadow-pressed: inset 0 4px 0 #b89a00;
+}
+[data-theme="dollz"] {
+  --desktop: #ffc8e8;
+  --window: #fff0f8;
+  --window-ink: #5a0b3d;
+  --window-muted: #8a2461;
+  --titlebar: #c8157a;
+  --titlebar-end: #d42a84;
+  --titlebar-ink: #ffffff;
+  --frame: #a3105f;
+  --button: #ffffff;
+  --button-ink: #5a0b3d;
+  --button-border: #c8157a;
+  --bevel-light: #ffffff;
+  --bevel-dark: #f3a6d2;
+  --accent: #b5126f;
+  --on-accent: #ffffff;
+  --highlight: #ff8fd0;
+  --on-highlight: #5a0b3d;
+  --sparkle: #fff35c;
+  --focus: #5a0b3d;
+  --shadow-window: 0 6px 0 #c8157a;
+  --shadow-bevel: inset 0 -3px 0 #f3a6d2;
+  --shadow-pressed: inset 0 3px 0 #f3a6d2;
+}
+[data-theme="bear"] {
+  --desktop: #ffe7c2;
+  --window: #fffaf0;
+  --window-ink: #4a2a12;
+  --window-muted: #7a4e2a;
+  --titlebar: #6b3a1e;
+  --titlebar-end: #8a5228;
+  --titlebar-ink: #ffffff;
+  --frame: #4a2a12;
+  --button: #ffd166;
+  --button-ink: #4a2a12;
+  --button-border: #9a6a12;
+  --bevel-light: #fff3d6;
+  --bevel-dark: #c9a46a;
+  --accent: #1f7a70;
+  --on-accent: #ffffff;
+  --highlight: #c23f72;
+  --on-highlight: #ffffff;
+  --sparkle: #ff9fc4;
+  --focus: #4a2a12;
+  --shadow-window: 0 5px 0 #4a2a12;
+  --shadow-bevel: inset 0 -4px 0 #c9a46a;
+  --shadow-pressed: inset 0 3px 0 #c9a46a;
+}
+[data-theme="insta"] {
+  --desktop: #ece8df;
+  --window: #ffffff;
+  --window-ink: #262626;
+  --window-muted: #646058;
+  --titlebar: #2a5a83;
+  --titlebar-end: #3f729b;
+  --titlebar-ink: #ffffff;
+  --frame: #5d6b78;
+  --button: #f4f2ee;
+  --button-ink: #262626;
+  --button-border: #7d786d;
+  --bevel-light: #ffffff;
+  --bevel-dark: #d6d1c4;
+  --accent: #2f6390;
+  --on-accent: #ffffff;
+  --highlight: #125688;
+  --on-highlight: #ffffff;
+  --sparkle: #f5c242;
+  --focus: #125688;
+  --shadow-window: 0 1px 3px rgba(0,0,0,0.3);
+  --shadow-bevel: inset 0 1px 0 #ffffff, inset 0 -2px 0 #d6d1c4;
+  --shadow-pressed: inset 0 2px 3px rgba(0,0,0,0.2);
+}
+[data-theme="myspaze"] {
+  --desktop: #000000;
+  --window: #111111;
+  --window-ink: #ececec;
+  --window-muted: #b0b0b0;
+  --titlebar: #003399;
+  --titlebar-end: #2d5f99;
+  --titlebar-ink: #ffffff;
+  --frame: #336699;
+  --button: #222222;
+  --button-ink: #ececec;
+  --button-border: #6b6b6b;
+  --bevel-light: #4a4a4a;
+  --bevel-dark: #000000;
+  --accent: #ff2fd1;
+  --on-accent: #000000;
+  --highlight: #00ffcc;
+  --on-highlight: #000000;
+  --sparkle: #ffff00;
+  --focus: #00ffcc;
+  --shadow-window: none;
+  --shadow-bevel: inset 1px 1px 0 #4a4a4a, inset -1px -1px 0 #000000;
+  --shadow-pressed: inset 1px 1px 0 #000000, inset -1px -1px 0 #4a4a4a;
+}
+:root {
+  --space-1: 2px;
+  --space-2: 4px;
+  --space-3: 8px;
+  --space-4: 12px;
+  --space-5: 16px;
+  --space-6: 24px;
+  --space-7: 32px;
+  --space-8: 48px;
+  --radius-none: 0;
+  --radius-button: 3px;
+  --radius-window: 8px;
+  --radius-bubbly: 18px;
+  --radius-pill: 999px;
+  --font-ui: Tahoma, Verdana, "Segoe UI", Geneva, sans-serif;
+  --font-pixel: "Pixelify Sans", "Courier New", monospace;
+  --font-bubbly: Fredoka, "Trebuchet MS", sans-serif;
+  --font-chunky: Chewy, Fredoka, "Trebuchet MS", sans-serif;
+  --font-comic: "Comic Neue", "Comic Sans MS", "Chalkboard SE", sans-serif;
+  --font-script: Pacifico, "Brush Script MT", cursive;
+  --font-lcd: VT323, "Lucida Console", "Courier New", monospace;
+  --font-web1999: "Times New Roman", Times, serif;
+}
+.phone-question { font-family: var(--font-ui); font-size: 24px; line-height: 30px; font-weight: 700; }
+.phone-answer { font-family: var(--font-ui); font-size: 18px; line-height: 24px; font-weight: 700; }
+.phone-display { font-family: var(--font-pixel); font-size: 40px; line-height: 44px; font-weight: 700; }
+.phone-timer { font-family: var(--font-pixel); font-size: 28px; line-height: 32px; font-weight: 700; }
+.phone-title { font-family: var(--font-ui); font-size: 20px; line-height: 26px; font-weight: 700; }
+.phone-button { font-family: var(--font-ui); font-size: 18px; line-height: 22px; font-weight: 700; }
+.phone-body { font-family: var(--font-ui); font-size: 16px; line-height: 22px; font-weight: 400; }
+.caption { font-family: var(--font-ui); font-size: 13px; line-height: 18px; font-weight: 400; }
+.titlebar { font-family: var(--font-ui); font-size: 15px; line-height: 20px; font-weight: 700; }
+.menu { font-family: var(--font-ui); font-size: 12px; line-height: 16px; font-weight: 400; }
+.igloo-display { font-family: var(--font-bubbly); font-size: 30px; line-height: 34px; font-weight: 700; }
+.monster-display { font-family: var(--font-chunky); font-size: 32px; line-height: 36px; font-weight: 400; }
+.dollz-display { font-family: var(--font-script); font-size: 30px; line-height: 44px; font-weight: 400; }
+.comic-body { font-family: var(--font-comic); font-size: 18px; line-height: 24px; font-weight: 700; }
+.lcd-display { font-family: var(--font-lcd); font-size: 26px; line-height: 28px; font-weight: 400; }
+.web1999 { font-family: var(--font-web1999); font-size: 22px; line-height: 28px; font-weight: 700; }

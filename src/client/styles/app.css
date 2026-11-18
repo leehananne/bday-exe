@@ -1,0 +1,96 @@
+/* App-level layout on real phones. The design system's .bx-phone is a 390×780 preview frame;
+   in the app it fills the screen (portrait, 360–430 wide) and only gets the frame on big screens. */
+html, body, #root { height: 100%; }
+body { background: var(--qr-ink); overscroll-behavior: none; -webkit-tap-highlight-color: transparent; }
+button { font-family: inherit; touch-action: manipulation; }
+
+.app-phone.bx-phone {
+  width: 100%; max-width: 430px; height: 100vh; height: 100dvh; margin: 0 auto;
+  border: 0; border-radius: 0;
+  padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom);
+}
+@media (min-width: 640px) and (min-height: 840px) {
+  .app-phone.bx-phone { width: 390px; height: 780px; margin: 30px auto; border: 10px solid var(--qr-ink); border-radius: 44px; padding: 0; }
+  body { background: #2a2a2a; }
+}
+.app-phone.bx-phone.is-host { max-width: 480px; }
+@media (min-width: 640px) and (min-height: 840px) { .app-phone.bx-phone.is-host { width: 430px; height: 800px; } }
+
+.app-scroll { overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.app-center { justify-content: center; }
+.app-grow { flex: 1; min-height: 0; }
+.app-muted { color: var(--window-muted); }
+.app-caption { margin: 0; font: 13px/18px var(--font-ui); }
+.app-row { display: flex; gap: var(--space-3); align-items: center; }
+.app-row > .bx-btn { flex: 1; }
+.app-center-text { text-align: center; justify-items: center; }
+.app-nomargin { margin: 0; }
+
+/* Connection banner */
+.app-banner { position: absolute; z-index: 30; left: 50%; top: 8px; transform: translateX(-50%); padding: 4px 12px; font: 700 13px/18px var(--font-ui);
+  background: var(--favourite); color: var(--on-favourite); border: 2px solid var(--frame); border-radius: var(--radius-pill); white-space: nowrap; }
+
+/* Toast (nudges, errors) */
+.app-toast { position: absolute; z-index: 40; left: 12px; right: 12px; bottom: 16px; }
+
+/* Pick-a-target sheet for power-ups */
+.app-sheet { position: absolute; z-index: 35; inset: auto 0 0 0; max-height: 70%; display: flex; flex-direction: column; }
+.app-sheet .bx-buddies { overflow-y: auto; }
+
+/* Avatar picker buttons */
+.app-avatars { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-3); }
+.app-avatars button { padding: 0; border: 0; background: transparent; cursor: pointer; border-radius: var(--bx-r-btn); }
+.app-avatars button .bx-avatar { width: 100%; height: 64px; }
+.app-avatars button[aria-checked="true"] { outline: 3px solid var(--focus); outline-offset: 2px; }
+.app-avatars button:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+
+/* Waiting state lane where reactions float up */
+.app-stage { flex: 1; min-height: 80px; }
+
+/* Host split bars */
+.app-split { display: grid; grid-template-columns: 28px 1fr 28px; gap: 8px; align-items: center; }
+.app-split .bx-answer__key { width: 28px; height: 28px; border-width: 0; color: var(--on-answer); }
+.app-split .bx-answer__key svg { width: 16px; height: 16px; }
+.app-split__bar { height: 18px; border: 1px solid var(--frame); min-width: 2px; }
+
+/* Mini answer tile sizing in host + compact reveals */
+.app-tiles-compact .bx-answer { min-height: 52px; padding: 6px 12px; }
+.app-tiles-compact .bx-answer__key { width: 36px; height: 36px; }
+
+/* Brick keypad as buttons */
+button.bx-key { cursor: pointer; font: 700 22px/1 var(--font-ui); }
+button.bx-key:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.skin-brick button.bx-key:active { transform: translateY(1px); }
+
+/* The "Locked in" big numbers */
+.app-big { font: 700 72px/76px var(--font-pixel); }
+
+/* Crowd's Pick grid when there are many friends */
+.app-top8-many { grid-template-columns: repeat(5, 1fr); }
+.bx-top8 .bx-answer__count { color: var(--window-ink); border-color: var(--window-ink); font-size: 14px; }
+.bx-top8 button.is-win { border-color: var(--favourite); background: var(--favourite); color: var(--on-favourite); }
+
+/* Bookmarks (Internet Exploder typed reveal) */
+.app-bookmarks { margin: 0; padding: 0 0 0 18px; font: 700 18px/26px var(--font-web1999); }
+
+/* Host table buttons */
+.app-mini { min-height: 32px !important; padding: 2px 10px !important; font-size: 14px !important; }
+.app-select { min-height: 32px; font: 13px/18px var(--font-ui); max-width: 130px; }
+.bx-plan .app-select { width: 84px; max-width: 84px; font-size: 12px; }
+.bx-plan .bx-mod--sm .bx-mod__name { font-size: 11px; }
+.bx-plan td:nth-child(2) { font-size: 12px; line-height: 15px; }
+.bx-plan .is-locked td:last-child::after { content: none; }
+
+/* Calm mode extends the design-system rule to the shake and huat rain */
+.bx-calm .bx-anim-nudge, .bx-calm .bx-anim-pop, .bx-calm .bx-anim-drop, .bx-calm .bx-anim-stamp, .bx-calm .bx-anim-spin,
+.bx-calm .bx-anim-stripes, .bx-calm .bx-anim-bounce, .bx-calm .bx-float, .bx-calm .bx-confetti i { animation: none !important; }
+@media (prefers-reduced-motion: reduce) {
+  .bx-anim-drop, .bx-anim-stamp, .bx-anim-pulse, .bx-rain i, .bx-confetti i { animation: none !important; }
+}
+
+/* Chaos card zone: reserves room so overlays can cover the question card without reaching the
+   answers, input or timer (PRD §8a layering contract). The card stretches to fill it. */
+.app-zone { flex: none; min-height: min(300px, 36dvh); display: flex; flex-direction: column; }
+.app-zone > :not(.bx-chaos):not(.bx-sr) { flex: 1 1 auto !important; }
+.app-zone > .bx-window > .bx-body { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+.app-zone > .bx-pq__card { display: flex; flex-direction: column; justify-content: center; }
