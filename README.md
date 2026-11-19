@@ -44,7 +44,7 @@ Without one, it lives at `https://bday-exe.<your-subdomain>.workers.dev`.
 
 ```bash
 npm install
-npm test            # 37 engine unit tests (every outcome × modifier, C1–C7, chaos acceptance, full games)
+npm test            # 41 engine unit tests (every outcome × modifier, C1–C7, chaos acceptance, full games)
 npm run dev         # wrangler dev (8787) + vite (5173); open http://localhost:5173/host
 ```
 
@@ -69,7 +69,9 @@ npm run deploy
 4. Share the QR code or the link. Players join with a name and an avatar. Late joining is allowed until Q3.
 5. Start. During each question you have Pause, +10s, End now, Nudge all, Skip and Swap next modifier. Typed answers are
    auto-grouped for judging (✓ / ✗ / ★ +lol). For Host's Fave you crown one answer and give up to 3 +lol. For the brick-phone question you enter the
-   real number. Then step through the reveal. ☰ has Calm mode, power-ups, kick and Reset game (for the rehearsal).
+   real number. When the timer ends (or you tap Done after judging), the reveal **plays itself**: split → answer → points → leaderboard,
+   Kahoot-style. Tap **Next ▶** to skip ahead or **⏸ Hold** to stop on a moment. The leaderboard waits for your **Start Q▶**
+   unless you switch on *Autopilot next question* (☰ or the lobby), which starts it after 12s. ☰ has Calm mode, power-ups, kick and Reset game (for the rehearsal).
 
 ## Testing on your own
 
@@ -84,7 +86,7 @@ npm run deploy
 
 | Command | What |
 |---|---|
-| `npm test` | Engine unit tests (vitest) |
+| `npm test` | Engine unit tests (vitest), including the reveal autopilot |
 | `node test/e2e.mjs` | Host and 3 players play all 10 questions in Chromium against `wrangler dev`, then a reload restores the same seat |
 | `node test/e2e-chaos.mjs` | Live chaos with 9 phones at 360/390/430 px: overlays never touch answers or the timer, and answers stay tappable |
 | `node test/layout.mjs` | Deterministic: all 11 chaos kinds × 10 skins × answer/waiting × 360/390/430 px (1,710 checks) |

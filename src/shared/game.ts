@@ -10,7 +10,18 @@ import type {
   QResult, Question, Resolved, RevealStep, Round, Verdict,
 } from './types';
 
-export const TIMING = { MODIFIER: 2000, BET: 10000, GRACE: 300, POWER_CUTOFF: 5000, POPUP_DELAY: 1000 };
+export const TIMING = { MODIFIER: 2000, BET: 10000, GRACE: 300, POWER_CUTOFF: 5000, POPUP_DELAY: 1000, LEADERBOARD: 12000 };
+export const DEFAULT_AUTO = { reveal: true, next: false };
+export const autoOf = (s: GameState) => s.auto ?? DEFAULT_AUTO;
+
+/** How long each reveal step stays up when the reveal plays itself (ms). */
+export function stepDuration(s: GameState, step: RevealStep): number {
+  const t = curQ(s)?.type;
+  if (step === 'mystery') return 3500;
+  if (step === 'split') return t === 'fave' ? 6000 : 3500;
+  if (step === 'answer') return t === 'fave' ? 6000 : 4000;
+  return s.q >= N(s) ? 6000 : 5000; // points
+}
 export const CHIPS = [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000];
 export const REACTIONS = ['😂', '💀', '🎂', '🔥', ':P', ';)', '(Y)', '🤡'] as const;
 export const MAX_PLAYERS = 40;
@@ -21,11 +32,12 @@ export type Action =
   | { t: 'setPlan'; plan: ModifierId[]; locked: boolean[] }
   | { t: 'reroll' }
   | { t: 'setChaos'; chaos: ChaosConfig }
-  | { t: 'setFlags'; calm?: boolean; powerups?: boolean }
+  | { t: 'setFlags'; calm?: boolean; powerups?: boolean; autoReveal?: boolean; autoNext?: boolean }
   | { t: 'kick'; pid: PlayerId }
   | { t: 'start' }
   | { t: 'pause' }
   | { t: 'resume' }
+  | { t: 'hold' }
   | { t: 'addTime' }
   | { t: 'endNow' }
   | { t: 'judge'; key: string; verdict: Verdict | null }
@@ -51,7 +63,7 @@ export type Action =
   | { t: 'chopeClear'; id: string };
 
 export const HOST_ACTIONS = new Set<Action['t']>([
-  'setPlan', 'reroll', 'setChaos', 'setFlags', 'kick', 'start', 'pause', 'resume', 'addTime', 'endNow', 'judge', 'crown',
+  'setPlan', 'reroll', 'setChaos', 'setFlags', 'kick', 'start', 'pause', 'resume', 'hold', 'addTime', 'endNow', 'judge', 'crown',
   'lol', 'setReal', 'finishJudging', 'revealNext', 'back', 'next', 'skip', 'swapModifier', 'roast', 'nudgeAll', 'resetGame',
 ]);
 
@@ -80,7 +92,7 @@ export function newGame(o: { pin: string; secretHash: string; questions: Questio
   return {
     v: 1, pin: o.pin, seed: o.seed, planSeed: o.seed, secretHash: o.secretHash, createdAt: o.now,
     questions: o.questions, plan: planModifiers(o.questions, o.seed, lockedVals), locked,
-    chaos: { ...DEFAULT_CHAOS, enabled: [...DEFAULT_CHAOS.enabled] }, calm: false, powerups: true,
+    chaos: { ...DEFAULT_CHAOS, enabled: [...DEFAULT_CHAOS.enabled] }, calm: false, powerups: true, auto: { ...DEFAULT_AUTO },
     phase: 'LOBBY', q: 0, endsAt: null, pausedAt: null, pausedLeft: null, phaseStartedAt: o.now, revealStep: 0, roast: '',
     players: {}, order: [], rounds: o.questions.map(emptyRound), chaosQueue: [], popups: [], hostOnline: true,
   };
@@ -94,6 +106,8 @@ export const curQ = (s: GameState): Question | null => (s.q > 0 ? s.questions[s.
 export const active = (s: GameState): Player[] => s.order.map((id) => s.players[id]).filter((p) => p && !p.kicked);
 export const needsJudge = (q: Question) => q.type === 'typed' || q.type === 'fave' || q.type === 'number';
 export const timed = (p: Phase) => p === 'MODIFIER' || p === 'BET' || p === 'ANSWER';
+/** Phases whose timer only exists on autopilot (pausable, but no +10s / End now). */
+export const autoTimed = (p: Phase) => p === 'REVEAL' || p === 'LEADERBOARD';
 
 export function stepsFor(s: GameState, q = s.q): RevealStep[] {
   return s.plan[q - 1] === 'mystery' ? ['mystery', 'split', 'answer', 'points'] : ['split', 'answer', 'points'];
@@ -315,12 +329,21 @@ function closeAnswers(s: GameState, now: number) {
 function toReveal(s: GameState, now: number) {
   cur(s)!.result = computeResult(s);
   s.revealStep = 0;
-  enter(s, 'REVEAL', now);
+  enter(s, 'REVEAL', now, autoOf(s).reveal ? stepDuration(s, stepsFor(s)[0]) : null);
+}
+
+/** Advance one reveal step (host tap or autopilot timer). */
+function nextStep(s: GameState, now: number) {
+  if (s.revealStep < stepsFor(s).length - 1) {
+    s.revealStep++;
+    s.endsAt = autoOf(s).reveal ? now + stepDuration(s, stepsFor(s)[s.revealStep]) : null;
+  } else endQuestion(s, now);
 }
 
 function endQuestion(s: GameState, now: number) {
+  s.pausedAt = s.pausedLeft = null;
   if (s.q >= N(s)) enter(s, 'PODIUM', now);
-  else enter(s, 'LEADERBOARD', now);
+  else enter(s, 'LEADERBOARD', now, autoOf(s).next ? TIMING.LEADERBOARD : null);
 }
 
 function processChaos(s: GameState, now: number) {
@@ -369,6 +392,8 @@ export function tick(s: GameState, now: number): boolean {
       if (JSON.stringify(s.chaosQueue) + s.popups.length !== before) changed = true;
       if (now >= s.endsAt! + TIMING.GRACE) { closeAnswers(s, now); changed = true; continue; }
     }
+    if (s.phase === 'REVEAL' && s.endsAt != null && now >= s.endsAt) { nextStep(s, now); changed = true; continue; }
+    if (s.phase === 'LEADERBOARD' && s.endsAt != null && now >= s.endsAt) { startQuestion(s, s.q + 1, now); changed = true; continue; }
     break;
   }
   return changed;
@@ -376,7 +401,9 @@ export function tick(s: GameState, now: number): boolean {
 
 /** When the room next needs `tick()` (the Durable Object alarm time). */
 export function nextWake(s: GameState): number | null {
-  if (s.pausedAt != null || !timed(s.phase) || s.endsAt == null) return null;
+  if (s.pausedAt != null || s.endsAt == null) return null;
+  if (autoTimed(s.phase)) return s.endsAt;
+  if (!timed(s.phase)) return null;
   if (s.phase === 'MODIFIER') return s.endsAt;
   if (s.phase === 'BET') return s.endsAt + TIMING.GRACE;
   const times = [s.endsAt + TIMING.GRACE];
@@ -480,6 +507,17 @@ export function apply(s: GameState, actor: Actor, a: Action, now: number): Apply
       case 'setFlags':
         if (a.calm != null) s.calm = !!a.calm;
         if (a.powerups != null) s.powerups = !!a.powerups;
+        if (a.autoReveal != null || a.autoNext != null) {
+          const au = { ...autoOf(s) };
+          if (a.autoReveal != null) au.reveal = !!a.autoReveal;
+          if (a.autoNext != null) au.next = !!a.autoNext;
+          s.auto = au;
+          // Apply to the screen that's up right now.
+          if (s.pausedAt == null) {
+            if (s.phase === 'REVEAL') s.endsAt = au.reveal ? now + stepDuration(s, stepsFor(s)[s.revealStep]) : null;
+            if (s.phase === 'LEADERBOARD') s.endsAt = au.next ? now + TIMING.LEADERBOARD : null;
+          }
+        }
         return ok();
       case 'kick': {
         const p = s.players[a.pid];
@@ -497,10 +535,16 @@ export function apply(s: GameState, actor: Actor, a: Action, now: number): Apply
         return ok();
       }
       case 'pause':
-        if (!timed(s.phase) || s.pausedAt != null) return fail('Nothing to pause');
+        if (!(timed(s.phase) || autoTimed(s.phase)) || s.endsAt == null || s.pausedAt != null) return fail('Nothing to pause');
         s.pausedAt = now;
         s.pausedLeft = Math.max(0, s.endsAt! - now);
         s.endsAt = null;
+        return ok();
+      case 'hold':
+        // Stop the autopilot on this screen (host keeps talking); tap Next to continue.
+        if (!autoTimed(s.phase)) return fail('Nothing to hold');
+        s.endsAt = null;
+        s.pausedAt = s.pausedLeft = null;
         return ok();
       case 'resume': {
         if (s.pausedAt == null) return fail('Not paused');
@@ -563,11 +607,13 @@ export function apply(s: GameState, actor: Actor, a: Action, now: number): Apply
         return ok();
       case 'revealNext':
         if (s.phase !== 'REVEAL') return fail('Not revealing');
-        if (s.revealStep < stepsFor(s).length - 1) s.revealStep++;
-        else endQuestion(s, now);
+        s.pausedAt = s.pausedLeft = null;
+        nextStep(s, now);
         return ok();
       case 'back':
         if (s.phase === 'REVEAL') {
+          s.endsAt = null; // going back holds the autopilot
+          s.pausedAt = s.pausedLeft = null;
           if (s.revealStep > 0) s.revealStep--;
           else if (needsJudge(q!)) { r!.result = null; enter(s, 'JUDGE', now); }
           else return fail('Nothing to go back to');
@@ -576,7 +622,8 @@ export function apply(s: GameState, actor: Actor, a: Action, now: number): Apply
         if (s.phase === 'LEADERBOARD' || s.phase === 'PODIUM') {
           if (r!.skipped) return fail('That question was skipped');
           s.revealStep = stepsFor(s).length - 1;
-          enter(s, 'REVEAL', now);
+          s.pausedAt = s.pausedLeft = null;
+          enter(s, 'REVEAL', now); // held: no autopilot timer after going back
           return ok();
         }
         return fail('Nothing to go back to');

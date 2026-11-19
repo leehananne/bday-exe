@@ -118,20 +118,25 @@ for (let q = 1; q <= 10; q++) {
     await host.click('text=Confirm → reveal');
   }
   await waitTitle(/Reveal/);
-  // step through reveal
-  let step = 0;
-  for (;;) {
-    await sleep(300);
-    await players[0].screenshot({ path: `${SHOTS}/q${q}-7-reveal-${step}.png` });
-    if (step === 0) await host.screenshot({ path: `${SHOTS}/q${q}-host-reveal.png` });
-    const btn = host.locator('.bx-btn--primary.bx-btn--lg');
-    const label = await btn.innerText();
-    await btn.click();
-    step++;
-    if (/Leaderboard|Podium/.test(label)) break;
+  // the reveal plays itself (autopilot): screenshot each step until the leaderboard / podium
+  let step = 0, lastStep = '';
+  const t0 = Date.now();
+  while (Date.now() - t0 < 30000) {
+    const t = await hostTitle();
+    if (/After Q|Podium/.test(t)) break;
+    const label = await host.locator('button[aria-pressed="true"]').last().innerText().catch(() => '');
+    if (label !== lastStep) {
+      lastStep = label;
+      await sleep(250);
+      await players[0].screenshot({ path: `${SHOTS}/q${q}-7-reveal-${step}.png` });
+      if (step === 0) await host.screenshot({ path: `${SHOTS}/q${q}-host-reveal.png` });
+      step++;
+    }
+    await sleep(200);
   }
+  if (step < 3) throw new Error(`Q${q}: autopilot showed only ${step} reveal steps`);
   if (q < 10) {
-    await waitTitle(/After Q/);
+    await waitTitle(/After Q/, 30000);
     await sleep(300);
     await players[0].screenshot({ path: `${SHOTS}/q${q}-8-board.png` });
     await host.click(`text=Start Q${q + 1}`);

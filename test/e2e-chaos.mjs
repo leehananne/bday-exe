@@ -79,7 +79,7 @@ for (let q = 1; q <= 5; q++) {
   await host.waitForSelector('text=/Reveal|Judge|Pick your fave/', { timeout: 15000 });
   if (/Judge|fave/.test(await title())) await host.click('button.bx-btn--primary.bx-btn--lg');
   for (const p of players) if (await p.locator('.bx-chaos').count()) errors.push(`Q${q}: overlay still up after the answer phase`);
-  for (let s = 0; s < 4 && /Reveal/.test(await title()); s++) { await host.click('button.bx-btn--primary.bx-btn--lg'); await sleep(200); }
+  // the reveal plays itself to the leaderboard
   if (q < 5) { await host.waitForSelector(`text=Start Q${q + 1}`); await host.click(`text=Start Q${q + 1}`); }
   console.log(`Q${q}: overlays seen so far ${seen}, kinds ${[...kinds].join(',')}`);
 }

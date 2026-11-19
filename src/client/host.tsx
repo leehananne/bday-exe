@@ -149,6 +149,7 @@ function HostMenu({ v, room, close }: { v: View; room: Room; close: () => void }
         <div className="bx-body bx-stack" style={{ gap: 6 }}>
           <label className="bx-toggle-row"><input type="checkbox" checked={v.calm} onChange={(e) => room.act({ t: 'setFlags', calm: e.target.checked })} /><span>Calm mode<small>Stops shake, wobble, marquee, twinkle, rain for everyone</small></span></label>
           <label className="bx-toggle-row"><input type="checkbox" checked={v.powerups} onChange={(e) => room.act({ t: 'setFlags', powerups: e.target.checked })} /><span>Nudges &amp; pop-up ads<small>Player power-ups, one each per game</small></span></label>
+          <AutoToggles v={v} room={room} />
           <p className="caption app-muted app-nomargin">Players ({v.players.length})</p>
           <ul className="bx-buddies" style={{ maxHeight: 220, overflowY: 'auto' }}>
             {v.players.map((p) => (
@@ -267,6 +268,7 @@ function Lobby({ v, room, onSetup }: { v: View; room: Room; onSetup: () => void 
       <Window style={{ flex: 'none' }}>
         <div className="bx-body bx-stack" style={{ gap: 6 }}>
           <label className="bx-toggle-row" style={{ border: 0 }}><input type="checkbox" checked={v.powerups} onChange={(e) => room.act({ t: 'setFlags', powerups: e.target.checked })} /> Nudges &amp; pop-up ads</label>
+          <AutoToggles v={v} room={room} />
           <label className="bx-toggle-row" style={{ border: 0 }}><input type="checkbox" checked={v.calm} onChange={(e) => room.act({ t: 'setFlags', calm: e.target.checked })} /> Calm mode (no shaking)</label>
           <button className="bx-btn" onClick={onSetup}>⚙ Modifier plan &amp; chaos settings</button>
           {errs.length > 0 && <div className="bx-warn">✗ {errs[0]}</div>}
@@ -456,6 +458,36 @@ function EnterNumber({ v, room }: { v: View; room: Room }) {
 
 // ---------------------------------------------------------------- reveal / board / podium
 
+/** Countdown for the autopilot on the reveal / leaderboard, with Hold and Resume. */
+function Autopilot({ v, room, what }: { v: View; room: Room; what: string }) {
+  const now = useNow();
+  const left = secondsLeft(v, now);
+  const on = v.phase === 'REVEAL' ? v.auto.reveal : v.auto.next;
+  if (v.endsAt != null) {
+    return (
+      <div className="app-row caption" role="status">
+        <span style={{ flex: 1 }}>▶ Autopilot: {what} in <b>{left}s</b></span>
+        <button className="bx-btn app-mini" onClick={() => room.act({ t: 'hold' })}>⏸ Hold</button>
+      </div>
+    );
+  }
+  return (
+    <div className="app-row caption" role="status">
+      <span style={{ flex: 1 }}>{on ? '⏸ Held. Talk all you like.' : 'Autopilot off: you tap through.'}</span>
+      <button className="bx-btn app-mini" onClick={() => room.act({ t: 'setFlags', ...(v.phase === 'REVEAL' ? { autoReveal: true } : { autoNext: true }) })}>▶ {on ? 'Resume' : 'Turn on'}</button>
+    </div>
+  );
+}
+
+function AutoToggles({ v, room }: { v: View; room: Room }) {
+  return (
+    <>
+      <label className="bx-toggle-row"><input type="checkbox" checked={v.auto.reveal} onChange={(e) => room.act({ t: 'setFlags', autoReveal: e.target.checked })} /><span>Auto-play reveal<small>When time's up: split → answer → points → leaderboard, on timers</small></span></label>
+      <label className="bx-toggle-row"><input type="checkbox" checked={v.auto.next} onChange={(e) => room.act({ t: 'setFlags', autoNext: e.target.checked })} /><span>Autopilot next question<small>Leaderboard starts the next question after 12s</small></span></label>
+    </>
+  );
+}
+
 const STEP_LABEL = { mystery: 'Reveal mystery rule', split: 'Show the split', answer: 'Reveal answer', points: 'Show points' } as const;
 
 function RevealCtl({ v, room }: { v: View; room: Room }) {
@@ -473,9 +505,10 @@ function RevealCtl({ v, room }: { v: View; room: Room }) {
             <button key={s} className={`bx-btn bx-btn--block ${i === r.index ? '' : ''}`} aria-pressed={i <= r.index} disabled={i > r.index}>{['①', '②', '③', '④'][i]} {STEP_LABEL[s]} {i <= r.index ? '✓' : ''}</button>
           ))}
           <button className="bx-btn bx-btn--primary bx-btn--lg bx-btn--block" onClick={() => room.act({ t: 'revealNext' })}>
-            {r.index < r.steps.length - 1 ? `${STEP_LABEL[r.steps[r.index + 1]]} ▶` : last ? 'Podium ▶' : `Leaderboard → Q${v.q + 1}`}
+            {r.index < r.steps.length - 1 ? `Next: ${STEP_LABEL[r.steps[r.index + 1]]} ▶` : last ? 'Podium ▶' : 'Leaderboard ▶'}
           </button>
           <button className="bx-btn" onClick={() => room.act({ t: 'back' })}>◀ Back{r.index === 0 && q.type !== 'mc' && q.type !== 'crowd' ? ' (re-open judging)' : ''}</button>
+          <Autopilot v={v} room={room} what={r.index < r.steps.length - 1 ? STEP_LABEL[r.steps[r.index + 1]].toLowerCase() : last ? 'podium' : 'leaderboard'} />
         </div>
       </Window>
       {q.type === 'mc' && (
@@ -499,7 +532,7 @@ function BoardCtl({ v, room }: { v: View; room: Room }) {
   return (
     <div className="bx-phone__main app-scroll">
       <Window title="C:\Party\Leaderboard" style={{ flex: 'none' }}><BoardTable v={v} limit={10} /></Window>
-      <Window style={{ flex: 'none' }}><div className="bx-body bx-stack" style={{ gap: 6 }}><NextModifier v={v} room={room} /></div></Window>
+      <Window style={{ flex: 'none' }}><div className="bx-body bx-stack" style={{ gap: 6 }}><Autopilot v={v} room={room} what={`Q${v.q + 1} starts`} /><NextModifier v={v} room={room} /></div></Window>
       <div className="app-row" style={{ flex: 'none' }}>
         <button className="bx-btn" onClick={() => room.act({ t: 'back' })}>◀ Back</button>
         <button className="bx-btn bx-btn--primary bx-btn--lg" onClick={() => room.act({ t: 'next' })}>Start Q{v.q + 1} ▶</button>

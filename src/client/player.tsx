@@ -631,6 +631,8 @@ export function BoardTable({ v, meId, limit }: { v: View; meId?: string; limit?:
 }
 
 function Board({ v }: { v: View }) {
+  const now = useNow();
+  const left = v.endsAt != null ? secondsLeft(v, now) : null;
   const b = v.board!;
   const next = v.nextSkin;
   return (
@@ -645,8 +647,8 @@ function Board({ v }: { v: View }) {
       {next && (
         <Window title={`Loading Q${v.q + 1}…`} className="bx-anim-pop">
           <div className="bx-body bx-stack">
-            <p className="phone-body app-nomargin">Installing <b>{SKINS[next].name}</b> skin…</p>
-            <Progress pct={70} stripes />
+            <p className="phone-body app-nomargin">Installing <b>{SKINS[next].name}</b> skin…{left != null ? ` ${left}s` : ''}</p>
+            <Progress pct={left != null ? 100 - (left / 12) * 100 : 70} stripes />
             <p className="caption app-muted app-nomargin">Do not turn off your phone. Do not let Marcus touch your phone.</p>
           </div>
         </Window>

@@ -323,4 +323,73 @@ describe('game flow', () => {
     const g = new Sim(1);
     expect(apply(g.s, { role: 'player', pid: 'p0' }, { t: 'start' }, g.now).ok).toBe(false);
   });
+
+  it('autopilot: the reveal plays itself to the leaderboard after time is up (Kahoot-style)', () => {
+    const g = new Sim(2);
+    g.s.chaos.intensity = 'off';
+    g.host({ t: 'start' }); g.toAnswer(); g.endBet();
+    g.pl(0, { t: 'answer', v: 2 });
+    g.endAnswer();
+    expect(g.s.phase).toBe('REVEAL');
+    expect(g.s.revealStep).toBe(0);
+    g.advance(3600); expect(g.s.revealStep).toBe(1);
+    g.advance(4100); expect(g.s.revealStep).toBe(2);
+    expect(viewFor(g.s, { role: 'player', pid: 'p0' }, g.now).me?.result).toEqual({ outcome: 'right', delta: 100 });
+    g.advance(5100);
+    expect(g.s.phase).toBe('LEADERBOARD');
+    // next question waits for the host by default
+    g.advance(60_000);
+    expect(g.s.phase).toBe('LEADERBOARD');
+    expect(g.host({ t: 'next' }).ok).toBe(true);
+    expect(g.s.phase).toBe('MODIFIER');
+  });
+
+  it('autopilot: hold stops on the current step; Next and re-enabling continue; autoNext starts the next question', () => {
+    const g = new Sim(1);
+    g.s.chaos.intensity = 'off';
+    g.host({ t: 'setFlags', autoNext: true });
+    g.host({ t: 'start' }); g.toAnswer(); g.endBet(); g.endAnswer();
+    expect(g.host({ t: 'hold' }).ok).toBe(true);
+    g.advance(30_000);
+    expect(g.s).toMatchObject({ phase: 'REVEAL', revealStep: 0 });
+    g.host({ t: 'revealNext' }); // manual tap re-arms the timer for the next step
+    expect(g.s.revealStep).toBe(1);
+    g.advance(4100); expect(g.s.revealStep).toBe(2);
+    g.host({ t: 'back' }); // going back holds
+    g.advance(30_000);
+    expect(g.s.revealStep).toBe(1);
+    g.host({ t: 'setFlags', autoReveal: true }); // resume autopilot
+    g.advance(4100 + 5100);
+    expect(g.s.phase).toBe('LEADERBOARD');
+    g.advance(TIMING.LEADERBOARD + 1);
+    expect(g.s).toMatchObject({ phase: 'MODIFIER', q: 2 });
+  });
+
+  it('autopilot off: reveal waits for the host; host-judged questions auto-play after Done', () => {
+    const g = new Sim(1);
+    g.s.chaos.intensity = 'off';
+    g.host({ t: 'setFlags', autoReveal: false });
+    g.host({ t: 'start' }); g.toAnswer(); g.endBet(); g.endAnswer();
+    g.advance(60_000);
+    expect(g.s).toMatchObject({ phase: 'REVEAL', revealStep: 0 });
+    g.host({ t: 'setFlags', autoReveal: true });
+    g.revealAll(); g.host({ t: 'next' });
+    for (let q = 2; q <= 3; q++) { g.toAnswer(); g.endBet(); g.endAnswer(); g.revealAll(); g.host({ t: 'next' }); }
+    g.toAnswer(); g.endBet(); g.pl(0, { t: 'answer', v: 'mcfly' }); g.endAnswer();
+    expect(g.s.phase).toBe('JUDGE');
+    g.advance(60_000);
+    expect(g.s.phase).toBe('JUDGE'); // judging never times out
+    g.host({ t: 'finishJudging' });
+    g.advance(20_000);
+    expect(g.s.phase).toBe('LEADERBOARD');
+  });
+
+  it('rooms saved before autopilot existed default to auto-reveal on', () => {
+    const g = new Sim(1);
+    delete (g.s as any).auto;
+    g.s.chaos.intensity = 'off';
+    g.host({ t: 'start' }); g.toAnswer(); g.endBet(); g.endAnswer();
+    g.advance(20_000);
+    expect(g.s.phase).toBe('LEADERBOARD');
+  });
 });

@@ -2,7 +2,7 @@
 // future modifiers, the MYSTERY draw, or other players' answers before the matching reveal step.
 import { validate } from './modifiers';
 import {
-  activeChaosFor, active, chipsLeft, chopeFor, crowdTally, cur, curQ, lockedIn, N, resolvedMod, standings, stepsFor,
+  activeChaosFor, active, autoOf, chipsLeft, chopeFor, crowdTally, cur, curQ, lockedIn, N, resolvedMod, standings, stepsFor,
   totals, typedGroups, visibleThrough, type TypedGroup,
 } from './game';
 import { hash } from './rng';
@@ -66,6 +66,7 @@ export interface View {
   pin: string; phase: Phase; q: number; total: number;
   endsAt: number | null; paused: boolean; pausedLeft: number | null;
   calm: boolean; powerups: boolean; hostOnline: boolean;
+  auto: { reveal: boolean; next: boolean };
   players: PlayerPub[];
   question: QPublic | null;
   modifier: ModifierId | null;
@@ -239,7 +240,7 @@ export function viewFor(s: GameState, who: { role: 'host' } | { role: 'player'; 
     role: who.role, serverNow: now,
     pin: s.pin, phase: s.phase, q: s.q, total: N(s),
     endsAt: s.endsAt, paused: s.pausedAt != null, pausedLeft: s.pausedLeft,
-    calm: s.calm, powerups: s.powerups, hostOnline: s.hostOnline,
+    calm: s.calm, powerups: s.powerups, hostOnline: s.hostOnline, auto: autoOf(s),
     players: active(s).map((p) => ({ id: p.id, name: p.name, avatar: p.avatar, online: p.online })),
     question: q ? {
       n: s.q, skin: q.skin, type: q.type, category: q.category, seconds: q.seconds,

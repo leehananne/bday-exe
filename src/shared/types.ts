@@ -117,6 +117,8 @@ export interface GameState {
   chaos: ChaosConfig;
   calm: boolean;
   powerups: boolean;
+  /** Kahoot-style autopilot: reveal steps play on timers; optionally the next question starts by itself. */
+  auto?: { reveal: boolean; next: boolean };
   phase: Phase;
   /** 1-based current question; 0 in the lobby. */
   q: number;
