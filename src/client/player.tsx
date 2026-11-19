@@ -118,7 +118,15 @@ function Join({ pin, room, st }: { pin: string; room: Room; st: RoomState }) {
   const nj = st.needJoin!;
   const err = st.error?.code === 'join' ? st.error.msg : null;
   if (!nj.exists || !nj.open) {
-    return <Phone><div className="bx-phone__main app-center"><Dialog title={`Room ${pin}`} body={<p><b>{nj.reason}</b></p>} actions={<button className="bx-btn bx-btn--primary" onClick={() => location.reload()}>Try again</button>} /></div></Phone>;
+    return (
+      <Phone><div className="bx-phone__main app-center">
+        <Dialog title={`Room ${pin}`} body={<>
+          <p><b>{nj.reason}</b></p>
+          {!nj.exists && <p className="caption app-nomargin">Waiting for the room to open<span className="bx-anim-blink">_</span> This page joins by itself.</p>}
+          {!nj.exists && <p className="caption app-nomargin" style={{ marginTop: 8 }}>Hosting? Open <a href="/host">/host</a> to create room {pin}.</p>}
+        </>} actions={nj.exists ? <button className="bx-btn bx-btn--primary" onClick={() => location.reload()}>Try again</button> : undefined} />
+      </div></Phone>
+    );
   }
   const submit = (e: React.FormEvent) => { e.preventDefault(); if (name.trim()) { room.clearError(); room.join(name.trim(), avatar); play('join'); } };
   return (

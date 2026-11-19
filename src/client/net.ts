@@ -19,7 +19,9 @@ export interface RoomState {
 
 type Listener = (m: ServerMsg) => void;
 
-const tokenKey = (pin: string) => `bday:${pin}:token`;
+/** `?p=2` gives this tab its own player identity, so you can test several players in one browser. */
+const slot = () => { try { return new URLSearchParams(location.search).get('p')?.replace(/[^a-z0-9]/gi, '').slice(0, 8) ?? ''; } catch { return ''; } };
+const tokenKey = (pin: string) => `bday:${pin}:token${slot() ? `:${slot()}` : ''}`;
 export const store = {
   get(k: string) { try { return localStorage.getItem(k); } catch { return null; } },
   set(k: string, v: string) { try { localStorage.setItem(k, v); } catch { /* private mode */ } },
@@ -80,7 +82,11 @@ export class Room {
         if (m.role === 'player') store.set(tokenKey(this.pin), m.token);
         this.set({ welcome: m.role === 'host' ? { role: 'host' } : { role: 'player', pid: m.pid }, needJoin: null, error: null });
         break;
-      case 'need_join': this.set({ needJoin: m, welcome: null }); break;
+      case 'need_join':
+        this.set({ needJoin: m, welcome: null });
+        // Room not created yet: keep asking every 3s so players who open the link early get in automatically.
+        if (!m.exists) setTimeout(() => this.raw({ t: 'hello', role: 'player', token: store.get(tokenKey(this.pin)) ?? undefined }), 3000);
+        break;
       case 'state':
         if (bestRtt === Infinity) offset = m.view.serverNow - Date.now();
         this.set({ view: m.view });

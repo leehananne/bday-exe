@@ -71,6 +71,15 @@ npm run deploy
    auto-grouped for judging (✓ / ✗ / ★ +lol). For Host's Fave you crown one answer and give up to 3 +lol. For the brick-phone question you enter the
    real number. Then step through the reveal. ☰ has Calm mode, power-ups, kick and Reset game (for the rehearsal).
 
+## Testing on your own
+
+1. Open `/host` first and create the room. The player link (`/ANNE`) only works once the room exists. A player who opens it
+   early sees "isn't open yet" and joins by themselves as soon as you create it.
+2. Each browser normally gets one player seat (it's remembered so a reload returns to the same seat). To play several
+   players in one browser, add `?p=` with any label to each tab: `/ANNE?p=2`, `/ANNE?p=3`… Incognito windows or a
+   second browser also work.
+3. Use **☰ → Reset game** to go back to the lobby between test runs (players stay, scores and chips are wiped).
+
 ## Tests
 
 | Command | What |
