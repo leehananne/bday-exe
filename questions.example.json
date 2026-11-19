@@ -1,28 +1,131 @@
 [
-  { "id": 1, "skin": "xp", "type": "mc", "category": "Warm-up",
+  {
+    "id": 1,
+    "skin": "xp",
+    "type": "mc",
+    "category": "Warm-up",
     "prompt": "How many candles will actually fit on tonight's cake?",
-    "options": ["24", "25 (one to grow on)", "Fire hazard", "Never ask a lady"], "answer": 2, "seconds": 20 },
-  { "id": 2, "skin": "igloo", "type": "mc", "category": "Chilly Facts",
+    "options": [
+      "24",
+      "25 (one to grow on)",
+      "Fire hazard",
+      "Never ask a lady"
+    ],
+    "answer": 2,
+    "seconds": 20
+  },
+  {
+    "id": 2,
+    "skin": "igloo",
+    "type": "mc",
+    "category": "Chilly Facts",
     "prompt": "Which drink does Anne order every. single. time?",
-    "options": ["Iced oat latte", "Matcha, oat, no ice", "Bubble tea, 0% sugar", "\"Just water\" (lies)"], "answer": 1, "seconds": 20 },
-  { "id": 3, "skin": "fakebook", "type": "mc", "category": "Status Updates",
+    "options": [
+      "Iced oat latte",
+      "Matcha, oat, no ice",
+      "Bubble tea, 0% sugar",
+      "\"Just water\" (lies)"
+    ],
+    "answer": 1,
+    "seconds": 20
+  },
+  {
+    "id": 3,
+    "skin": "fakebook",
+    "type": "mc",
+    "category": "Status Updates",
     "prompt": "\"Anne is ______ :( :( :(\" fill in my status. it's real.",
-    "options": ["…so over boys", "…not going 2 skool 2moro", "…confused. It's complicated.", "…hungry lol"], "answer": 3, "seconds": 20 },
-  { "id": 4, "skin": "ie", "type": "typed", "category": "Ancient History",
-    "prompt": "What was the first concert Anne ever went to?", "accept": ["mcfly"], "seconds": 30 },
-  { "id": 5, "skin": "monster", "type": "mc", "category": "Snack Crimes",
+    "options": [
+      "…so over boys",
+      "…not going 2 skool 2moro",
+      "…confused. It's complicated.",
+      "…hungry lol"
+    ],
+    "answer": 3,
+    "seconds": 20
+  },
+  {
+    "id": 4,
+    "skin": "ie",
+    "type": "typed",
+    "category": "Ancient History",
+    "prompt": "What was the first concert Anne ever went to?",
+    "accept": [
+      "mcfly"
+    ],
+    "seconds": 30
+  },
+  {
+    "id": 5,
+    "skin": "monster",
+    "type": "mc",
+    "category": "Snack Crimes",
     "prompt": "Which snack would Anne fight a monster for?",
-    "options": ["Cheesy fries", "Prawn crackers", "The last cookie", "YOUR snack"], "answer": 2, "seconds": 20 },
-  { "id": 6, "skin": "dollz", "type": "fave", "category": "Fashion Crimes",
-    "prompt": "Design Anne's birthday outfit in five words or fewer.", "seconds": 45, "modifier": "normal" },
-  { "id": 7, "skin": "bear", "type": "mc", "category": "Childhood Lore",
+    "options": [
+      "Cheesy fries",
+      "Prawn crackers",
+      "The last cookie",
+      "YOUR snack"
+    ],
+    "answer": 2,
+    "seconds": 20
+  },
+  {
+    "id": 6,
+    "skin": "dollz",
+    "type": "fave",
+    "category": "Fashion Crimes",
+    "prompt": "Design Anne's birthday outfit in five words or fewer.",
+    "seconds": 45,
+    "modifier": "normal",
+    "hype": "RUNWAY TIME!!!!"
+  },
+  {
+    "id": 7,
+    "skin": "bear",
+    "type": "mc",
+    "category": "Childhood Lore",
     "prompt": "Anne's childhood soft toy was called…?",
-    "options": ["Mr Snuggles", "Bear (just Bear)", "Princess Fluffington III", "She bit them all"], "answer": 2, "seconds": 20 },
-  { "id": 8, "skin": "myspaze", "type": "crowd", "category": "Top 8",
-    "prompt": "Who's most likely to be late to their own wedding?", "seconds": 25 },
-  { "id": 9, "skin": "brick", "type": "number", "category": "Phone Crimes",
-    "prompt": "How many unread texts does Anne have right now?", "seconds": 25, "modifier": "double" },
-  { "id": 10, "skin": "bsod", "type": "mc", "category": "FINAL", "modifier": "trouble",
+    "options": [
+      "Mr Snuggles",
+      "Bear (just Bear)",
+      "Princess Fluffington III",
+      "She bit them all"
+    ],
+    "answer": 2,
+    "seconds": 20
+  },
+  {
+    "id": 8,
+    "skin": "myspaze",
+    "type": "crowd",
+    "category": "Top 8",
+    "prompt": "Who's most likely to be late to their own wedding?",
+    "seconds": 25
+  },
+  {
+    "id": 9,
+    "skin": "brick",
+    "type": "number",
+    "category": "Inbox Crimes",
+    "prompt": "How many unread emails are in Anne's Gmail right now?",
+    "seconds": 25,
+    "modifier": "double"
+  },
+  {
+    "id": 10,
+    "skin": "bsod",
+    "type": "mc",
+    "category": "FINAL",
+    "modifier": "trouble",
     "prompt": "What is Anne's go-to karaoke song?",
-    "options": ["Since U Been Gone", "Toxic", "Mr. Brightside", "She refuses. Coward."], "answer": 0, "seconds": 25 }
+    "options": [
+      "Since U Been Gone",
+      "Toxic",
+      "Mr. Brightside",
+      "She refuses. Coward."
+    ],
+    "answer": 0,
+    "seconds": 25
+  }
 ]

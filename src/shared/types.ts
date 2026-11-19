@@ -22,6 +22,8 @@ export interface Question {
   seconds: number;
   /** Pre-locks this row of the modifier plan. */
   modifier?: ModifierId;
+  /** Optional hype line: a big banner + confetti when the question starts ("TIME TO PROVIDE AFFIRMATION!!!!"). */
+  hype?: string;
 }
 
 export type ChaosKind =

@@ -140,3 +140,13 @@ button.bx-key:focus-visible { outline: 3px solid var(--focus); outline-offset: 2
 .app-roam__item button { pointer-events: auto; }
 .app-roam__item .bx-dialog { width: min(330px, calc(100vw - 24px)); }
 .app-roam__item .bx-4d { width: min(280px, calc(100vw - 24px)); }
+
+/* ---------- Hype questions (e.g. affirmation rounds): confetti + a banner, tap-through, top layer */
+.app-hype-layer { position: absolute; inset: 0; z-index: 30; pointer-events: none; overflow: hidden; }
+.app-hype-layer .bx-confetti ~ * { position: absolute; }
+.app-hype {
+  position: absolute; left: 12px; right: 12px; top: 26%; padding: 18px 12px; text-align: center;
+  font: 400 18px/28px var(--font-num); text-transform: uppercase; overflow-wrap: anywhere;
+  background: var(--favourite); color: var(--on-favourite); border: 3px solid var(--frame);
+  box-shadow: 0 6px 0 var(--frame); transform: rotate(-3deg);
+}

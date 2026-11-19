@@ -63,6 +63,8 @@ npm run deploy
 1. Edit `questions.example.json` (or upload your own file in the host app). It needs exactly 10 questions with these limits:
    prompt ≤110 characters, options ≤40. The skins are `xp igloo fakebook ie monster dollz bear myspaze brick bsod insta`, and the
    types are `mc typed fave crowd number`. Set `"modifier"` on a question to pre-lock that row of the plan.
+   Optional `"hype"` (≤40 chars) shows a big banner with confetti when that question starts, e.g.
+   `"TIME TO PROVIDE AFFIRMATION!!!!"`.
 2. Open `/host`, pick the PIN and create the room. The host link (`/host#PIN.secret`) is saved on that phone and is
    the only key to the room, so don't share it.
 3. Open ⚙ to review the modifier plan (re-roll, lock, edit, with live C1–C7 validation) and the chaos settings.

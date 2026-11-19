@@ -17,7 +17,7 @@ export const SKINS: Record<SkinId, { name: string; theme: string; short: string 
 
 const TYPES: QType[] = ['mc', 'typed', 'fave', 'crowd', 'number'];
 const MODS: ModifierId[] = ['normal', 'double', 'risky', 'trouble', 'mystery'];
-export const LIMITS = { prompt: 110, option: 40, typed: 40, fave: 60, name: 16 };
+export const LIMITS = { prompt: 110, option: 40, typed: 40, fave: 60, name: 16, hype: 40 };
 
 export function parseQuestions(input: unknown): { ok: true; questions: Question[] } | { ok: false; errors: string[] } {
   const errors: string[] = [];
@@ -38,6 +38,10 @@ export function parseQuestions(input: unknown): { ok: true; questions: Question[
     if (q.prompt.length > LIMITS.prompt) err(`prompt is ${q.prompt.length} chars (max ${LIMITS.prompt})`);
     if (!q.category) err('category is empty');
     if (!(q.seconds >= 10 && q.seconds <= 90)) err('seconds must be 10–90');
+    if (raw?.hype != null && String(raw.hype).trim()) {
+      q.hype = String(raw.hype).trim();
+      if (q.hype.length > LIMITS.hype) err(`hype is ${q.hype.length} chars (max ${LIMITS.hype})`);
+    }
     if (raw?.modifier != null) {
       if (!MODS.includes(raw.modifier)) err(`unknown modifier "${raw.modifier}"`);
       else q.modifier = raw.modifier;

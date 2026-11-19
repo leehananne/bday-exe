@@ -197,7 +197,22 @@ function Game(p: GP) {
     case 'LEADERBOARD': body = <Board v={v} />; break;
     case 'PODIUM': body = <Podium v={v} />; break;
   }
-  return <Phone skin={skin} calm={v.calm} shake={p.shake}>{body}{p.overlay}</Phone>;
+  const hype = v.question?.hype && (v.phase === 'MODIFIER' || v.phase === 'BET' || v.phase === 'ANSWER') ? v.question.hype : null;
+  return <Phone skin={skin} calm={v.calm} shake={p.shake}>{body}{hype && <Hype text={hype} v={v} />}{p.overlay}</Phone>;
+}
+
+/** Hype questions: confetti falls through MODIFIER → BET → ANSWER; the banner shows while the modifier
+ *  installs and for the first 3s of answering. Tap-through, so it never blocks the question. */
+function Hype({ text, v }: { text: string; v: View }) {
+  const now = useNow();
+  const left = secondsLeft(v, now);
+  const banner = v.phase === 'MODIFIER' || (v.phase === 'ANSWER' && v.question && left > v.question.seconds - 3);
+  return (
+    <div className="app-hype-layer" aria-hidden={!banner}>
+      <Confetti />
+      {banner && <div className="app-hype bx-anim-pop" role="status">{text}</div>}
+    </div>
+  );
 }
 
 function SoundToggle() {

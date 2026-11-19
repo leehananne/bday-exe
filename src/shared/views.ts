@@ -14,7 +14,7 @@ export interface PlayerPub { id: PlayerId; name: string; avatar: number; online:
 export interface Choice { key: string; label: string; avatar?: number }
 export interface QPublic {
   n: number; skin: SkinId; type: QType; category: string; seconds: number;
-  prompt?: string; options?: string[]; choices?: Choice[];
+  prompt?: string; options?: string[]; choices?: Choice[]; hype?: string;
 }
 export type SplitView =
   | { type: 'mc'; counts: number[] }
@@ -243,7 +243,7 @@ export function viewFor(s: GameState, who: { role: 'host' } | { role: 'player'; 
     calm: s.calm, powerups: s.powerups, hostOnline: s.hostOnline, auto: autoOf(s),
     players: active(s).map((p) => ({ id: p.id, name: p.name, avatar: p.avatar, online: p.online })),
     question: q ? {
-      n: s.q, skin: q.skin, type: q.type, category: q.category, seconds: q.seconds,
+      n: s.q, skin: q.skin, type: q.type, category: q.category, seconds: q.seconds, hype: q.hype,
       ...(PROMPT_PHASES.includes(s.phase) || s.phase === 'PODIUM' ? { prompt: q.prompt, options: q.options, choices: choicesFor(s, q) } : {}),
     } : null,
     modifier: s.q ? shownMod(s, s.q, revealedMystery) : null,

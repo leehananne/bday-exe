@@ -2,7 +2,7 @@
 // The Durable Object owns one GameState per room and calls `apply()` for every client
 // message and `tick()` from its alarm. Nothing here touches the network, clock or storage.
 import { ALL_KINDS, DURATION, SCAM_KINDS, scheduleChaos } from './chaos';
-import { allowedFor, delta, planModifiers, validate } from './modifiers';
+import { allowedFor, compatible, delta, planModifiers, validate } from './modifiers';
 import { LIMITS, levenshtein, norm } from './questions';
 import { hash, mulberry32 } from './rng';
 import type {
@@ -88,7 +88,8 @@ export function emptyRound(): Round {
 
 export function newGame(o: { pin: string; secretHash: string; questions: Question[]; seed: number; now: number }): GameState {
   const locked = o.questions.map((q, i) => !!q.modifier || i === 0 || i === o.questions.length - 1);
-  const lockedVals = o.questions.map((q, i) => q.modifier ?? (i === 0 ? 'normal' : i === o.questions.length - 1 ? 'trouble' : null));
+  // Q1 is always NORMAL; the final defaults to DOUBLE TROUBLE, or DOUBLE when its type can't take a penalty (C6).
+  const lockedVals = o.questions.map((q, i) => q.modifier ?? (i === 0 ? 'normal' : i === o.questions.length - 1 ? (compatible('trouble', q.type) ? 'trouble' : 'double') : null));
   return {
     v: 1, pin: o.pin, seed: o.seed, planSeed: o.seed, secretHash: o.secretHash, createdAt: o.now,
     questions: o.questions, plan: planModifiers(o.questions, o.seed, lockedVals), locked,

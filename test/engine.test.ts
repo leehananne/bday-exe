@@ -392,4 +392,13 @@ describe('game flow', () => {
     g.advance(20_000);
     expect(g.s.phase).toBe('LEADERBOARD');
   });
+
+  it('a Host\'s Fave or closest-number final gets DOUBLE instead of DOUBLE TROUBLE (no crash)', () => {
+    for (const type of ['fave', 'number'] as const) {
+      const qs = QS.map((q, i) => (i === 9 ? { ...QS[5], type, modifier: undefined, skin: 'bsod' as const } : { ...q, modifier: undefined }));
+      const s = newGame({ pin: 'ANNE', secretHash: 'x', questions: qs, seed: 7, now: 0 });
+      expect(s.plan[9]).toBe('double');
+      expect(validate(s.plan, qs).ok).toBe(true);
+    }
+  });
 });
