@@ -8,6 +8,7 @@ const BASE = process.env.BASE ?? 'http://127.0.0.1:8787';
 const SHOTS = process.env.SHOTS ?? 'screenshots/layout';
 mkdirSync(SHOTS, { recursive: true });
 const KINDS = ['scam_eyepad', 'scam_virus', 'scam_smileys', 'toto', 'fourd', 'huat', 'auntie_forward', 'auntie_chope', 'boss_email', 'bday_sale', 'melvin'];
+const ROAMING = ['fourd', 'scam_eyepad'];
 const intersects = (a, b) => a && b && a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height;
 const browser = await chromium.launch();
 const errors = [];
@@ -23,6 +24,22 @@ for (const w of [360, 390, 430]) {
         if (await page.locator('.is-choped').count()) {
           const t = page.locator('.is-choped');
           await t.click(); // first tap clears the tissue (in the real app); here it must at least be tappable
+        }
+        continue;
+      }
+      if (ROAMING.includes(kind)) {
+        // Roaming pop-ups (4D bounce, eyePad sweep) are the top layer by design but tap-through:
+        // every answer tile / input must still receive a tap while they move over it.
+        await page.waitForSelector('.app-roam__item', { timeout: 3000 }).catch(() => errors.push(`q${q} ${kind} @${w}: roaming pop-up not rendered`));
+        const pe = await page.locator('.app-roam__item').evaluate((el) => getComputedStyle(el).pointerEvents).catch(() => 'missing');
+        if (pe !== 'none') errors.push(`q${q} ${kind} @${w}: roaming pop-up is not tap-through (${pe})`);
+        if (!answered) {
+          const tiles = page.locator('.bx-pq__answers .bx-answer');
+          for (let k = 0; k < await tiles.count(); k++) {
+            checks++;
+            const hit = await tiles.nth(k).evaluate((el) => { const r = el.getBoundingClientRect(); const t = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2); return !!t && el.contains(t); });
+            if (!hit) errors.push(`q${q} ${kind} @${w}: tile ${k} not tappable under the roaming pop-up`);
+          }
         }
         continue;
       }

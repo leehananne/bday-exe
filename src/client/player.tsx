@@ -4,7 +4,8 @@ import { MOD_META } from '../shared/modifiers';
 import { LIMITS } from '../shared/questions';
 import type { ChaosEvent, ModifierId, SkinId } from '../shared/types';
 import type { View } from '../shared/views';
-import { ChaosOverlay } from './chaos';
+import { createPortal } from 'react-dom';
+import { ChaosOverlay, usePhoneHost } from './chaos';
 import {
   AnswerTile, Avatar, AVATAR_NAMES, Chips, Confetti, ErrorIcon, fmt, Heat, Hourglass, KEYS, ModBadge, Pill, Progress,
   ReactionBar, ReactStage, signed, StartLogo, Timer, TimerAnnouncer, useShake, Window, type Float, type Key,
@@ -83,6 +84,30 @@ export function PlayerPreview({ view }: { view: View }) {
 
 function Toast({ msg }: { msg: string }) {
   return <div className="app-toast" role="status"><Window title="BDAY.EXE" className="bx-anim-pop" data-theme="xp"><div className="bx-body"><p className="phone-body app-nomargin">{msg}</p></div></Window></div>;
+}
+
+/** "Illegal operation" troll dialog after a wrong answer: the top layer, with the screen dimmed behind it. */
+function WrongModal({ name }: { name: string }) {
+  const [open, setOpen] = useState(false);
+  const host = usePhoneHost();
+  useEffect(() => { const t = setTimeout(() => setOpen(true), 700); return () => clearTimeout(t); }, []); // let the +0 land first
+  useEffect(() => {
+    if (!open) return;
+    const esc = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); };
+    window.addEventListener('keydown', esc);
+    return () => window.removeEventListener('keydown', esc);
+  }, [open]);
+  if (!open || !host) return null;
+  return createPortal(
+    <div className="app-modal" onClick={(e) => { if (e.target === e.currentTarget) setOpen(false); }}>
+      <section className="bx-window bx-dialog bx-anim-pop" data-theme="xp" role="alertdialog" aria-modal="true" aria-label={`${name}.exe`}>
+        <div className="bx-titlebar"><span className="bx-title">{name}.exe</span><button className="bx-ctl bx-ctl--close" aria-label="Close" onClick={() => setOpen(false)}>×</button></div>
+        <div className="bx-dialog__body"><ErrorIcon size={32} /><div><p><b>Your answer has performed an illegal operation and will be shut down.</b></p><p>If the problem persists, study harder.</p></div></div>
+        <div className="bx-dialog__actions"><button className="bx-btn bx-btn--primary" autoFocus onClick={() => setOpen(false)}>OK :(</button></div>
+      </section>
+    </div>,
+    host,
+  );
 }
 
 function Dialog({ title, body, actions }: { title: string; body: React.ReactNode; actions?: React.ReactNode }) {
@@ -552,7 +577,7 @@ function Reveal(p: GP) {
         <p className="phone-body app-nomargin" style={q.skin === 'brick' ? { font: '400 26px/28px var(--font-lcd)' } : undefined}>
           {r.split.count} guesses{r.split.min != null ? `, from ${fmt(r.split.min)} to ${fmt(r.split.max!)}` : ''}.
         </p>
-        {a && <p style={{ margin: '8px 0 0', font: q.skin === 'brick' ? '400 40px/42px var(--font-lcd)' : '700 32px/36px var(--font-pixel)' }}>REAL: {a.real != null ? fmt(a.real) : '?'}</p>}
+        {a && <p style={{ margin: '8px 0 0', font: q.skin === 'brick' ? '400 40px/42px var(--font-lcd)' : '400 22px/32px var(--font-num)' }}>REAL: {a.real != null ? fmt(a.real) : '?'}</p>}
         {a && <p className="phone-body app-nomargin">Closest: {a.closest.map((c) => `${c.name} (${fmt(c.guess)})`).join(', ') || 'nobody'}</p>}
       </Card>
     );
@@ -575,14 +600,12 @@ function Reveal(p: GP) {
         <Card skin={q.skin} title={good ? 'Success' : 'Error'} className={good ? 'bx-anim-pop' : ''} style={{ textAlign: 'center' }}>
           <div className="bx-stack app-center-text">
             <Pill kind={good ? 'correct' : me.result.outcome === 'none' ? undefined : 'wrong'}>{label}</Pill>
-            <span className="phone-display" style={{ fontSize: 60, lineHeight: '64px' }}>{d >= 0 ? `+${fmt(d)}` : signed(d)}</span>
+            <span className="phone-display" style={{ fontSize: 36, lineHeight: '48px' }}>{d >= 0 ? `+${fmt(d)}` : signed(d)}</span>
             <p className="phone-body app-nomargin">{good ? copy.rightLine : copy.wrongLine}</p>
             {rankNow && <p className="caption app-nomargin" style={{ opacity: 0.9 }}>Total {rankNow.score < 0 ? `IN DEBT ▼ ${signed(rankNow.score)}` : fmt(rankNow.score)} · You're #{rankNow.rank}{rankNow.moved ? ` (${rankNow.moved > 0 ? '▲' : '▼'}${Math.abs(rankNow.moved)})` : ''}</p>}
           </div>
         </Card>
-        {!good && me.result.outcome === 'wrong' && q.skin !== 'bsod' && (
-          <Dialog title={`${me.name}.exe`} body={<><p><b>Your answer has performed an illegal operation and will be shut down.</b></p><p>If the problem persists, study harder.</p></>} />
-        )}
+        {!good && me.result.outcome === 'wrong' && q.skin !== 'bsod' && <WrongModal key={v.q} name={me.name} />}
       </>
     );
   } else if (r.stepName === 'points') {
@@ -677,7 +700,7 @@ function Podium({ v }: { v: View }) {
         <Window title="Your BDAY.EXE report">
           <div className="bx-body bx-stack app-center-text">
             <Avatar i={me.avatar} size="lg" />
-            <span className="phone-display">#{rep.rank} · {rep.score < 0 ? signed(rep.score) : fmt(rep.score)}</span>
+            <span className="phone-display" style={{ fontSize: 22, lineHeight: '32px' }}>#{rep.rank} · {rep.score < 0 ? signed(rep.score) : fmt(rep.score)}</span>
             <p className="phone-body app-nomargin">{rep.right}/{rep.played} correct{rep.best ? ` · best bet: ${rep.best}` : ''}{rep.worst ? ` · worst: ${rep.worst}` : ''}</p>
             <Pill kind="accent">👉 Chaos Agent: {rep.agent}</Pill>
             {rep.scammedMs > 0 && <Pill>📢 {(rep.scammedMs / 1000).toFixed(1)}s staring at pop-ups</Pill>}

@@ -171,15 +171,69 @@ export function ChaosOverlay({ ev, onClose }: { ev: ChaosEvent; onClose: (ev: Ch
     <>
       <span className="bx-sr" aria-live="polite">Pop-up: {ANNOUNCE[ev.kind]}. Close button available.</span>
       {ev.kind === 'huat' && <PhoneRain />}
-      <FitZone kind={ev.kind}>{body}</FitZone>
+      {ROAM[ev.kind] ? <Roam mode={ROAM[ev.kind]!} id={ev.id}>{body}</Roam> : <FitZone kind={ev.kind}>{body}</FitZone>}
     </>
   );
 }
 
+/** Pop-ups that leave the card zone and roam the whole screen as the top layer (tap-through except buttons). */
+const ROAM: Partial<Record<ChaosKind, 'dvd' | 'sweep'>> = { fourd: 'dvd', scam_eyepad: 'sweep' };
+
+/** The phone element, found after mount (it isn't in the document during the first render). */
+export function usePhoneHost(): HTMLElement | null {
+  const [host, setHost] = useState<HTMLElement | null>(null);
+  useLayoutEffect(() => { setHost(document.querySelector<HTMLElement>('.bx-phone')); }, []);
+  return host;
+}
+
 /** Huat rain spans the whole phone with pointer-events: none (taps go through). */
 function PhoneRain() {
-  const host = document.querySelector('.bx-phone');
+  const host = usePhoneHost();
   return host ? createPortal(<Rain />, host) : null;
+}
+
+/** dvd: bounces off the screen edges like the DVD logo. sweep: glides up and down the screen.
+ *  Calm mode / reduced motion: parked in the middle, no movement. */
+function Roam({ mode, id, children }: { mode: 'dvd' | 'sweep'; id: string; children: React.ReactNode }) {
+  const host = usePhoneHost();
+  const stage = useRef<HTMLDivElement>(null);
+  const item = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = item.current, box = stage.current;
+    if (!el || !box) return;
+    const still = !!box.closest('.bx-calm') || matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let x = 0, y = 0, vx = 95, vy = 125, raf = 0, last = performance.now();
+    const t0 = last, seed = id.length % 4;
+    let first = true;
+    const frame = (now: number) => {
+      const W = box.clientWidth, H = box.clientHeight, w = el.offsetWidth, h = el.offsetHeight;
+      const maxX = Math.max(0, W - w), maxY = Math.max(0, H - h);
+      if (first) { x = still || mode === 'sweep' ? maxX / 2 : (maxX * (seed + 1)) / 5; y = still ? maxY / 2 : mode === 'sweep' ? 0 : maxY / 3; first = false; }
+      const dt = Math.min(0.05, (now - last) / 1000);
+      last = now;
+      if (!still) {
+        if (mode === 'dvd') {
+          x += vx * dt; y += vy * dt;
+          if (x <= 0 || x >= maxX) { vx = -vx; x = Math.max(0, Math.min(maxX, x)); }
+          if (y <= 0 || y >= maxY) { vy = -vy; y = Math.max(0, Math.min(maxY, y)); }
+        } else {
+          x = maxX / 2;
+          y = maxY * (0.5 - 0.5 * Math.cos(((now - t0) / 2600) * Math.PI)); // top → bottom → top, 2.6s each way
+        }
+      }
+      el.style.transform = `translate(${Math.round(x)}px, ${Math.round(y)}px)`;
+      raf = requestAnimationFrame(frame);
+    };
+    raf = requestAnimationFrame(frame);
+    return () => cancelAnimationFrame(raf);
+  }, [host, mode, id]);
+  if (!host) return null;
+  return createPortal(
+    <div className="app-roam" ref={stage} data-chaos-roam={mode}>
+      <div className="app-roam__item" ref={item}>{children}</div>
+    </div>,
+    host,
+  );
 }
 
 export const shownMs = (ev: ChaosEvent, now: number) => Math.max(0, now - ev.at);

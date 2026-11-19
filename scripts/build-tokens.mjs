@@ -37,6 +37,12 @@ for (const g of t.type.groups) {
     css += `.${s.name} { font-family: var(--font-${fam}); font-size: ${s.fontSize}; line-height: ${s.lineHeight}; font-weight: ${s.fontWeight}; }\n`;
   }
 }
+// @font-face per self-hosted font. Files live in public/fonts/ (served at /fonts/). The weight range
+// maps bold requests onto the single file so browsers don't fake-bold a pixel font.
+for (const f of t.type.fonts ?? []) {
+  const file = f.file.startsWith('fonts/') ? f.file : `fonts/${f.file}`;
+  css += `@font-face { font-family: "${f.family}"; src: url("/${file}") format("truetype"); font-weight: ${f.weight === '400' ? '400 700' : f.weight}; font-style: ${f.style ?? 'normal'}; font-display: swap; }\n`;
+}
 const out = resolve(root, 'src/client/styles/tokens.css');
 mkdirSync(dirname(out), { recursive: true });
 writeFileSync(out, css);

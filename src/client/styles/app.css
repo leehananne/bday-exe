@@ -94,3 +94,49 @@ button.bx-key:focus-visible { outline: 3px solid var(--focus); outline-offset: 2
 .app-zone > :not(.bx-chaos):not(.bx-sr) { flex: 1 1 auto !important; }
 .app-zone > .bx-window > .bx-body { flex: 1; display: flex; flex-direction: column; justify-content: center; }
 .app-zone > .bx-pq__card { display: flex; flex-direction: column; justify-content: center; }
+
+/* ---------- Numbers: Press Start 2P (--font-num). Every glyph is a full em wide, so sizes are
+   smaller than the old pixel face and chosen to fit at 360px. Text (modifier names) keeps --font-pixel. */
+:root, [data-theme] { --bx-font-display: var(--font-num); }
+.bx-clock { font-family: var(--font-num); font-size: 13px; font-weight: 400; }
+.bx-timer__secs { font-family: var(--font-num); font-size: 26px; font-weight: 400; line-height: 1.1; }
+.bx-pq__meta .bx-timer__secs { font-size: 20px; line-height: 28px; font-weight: 400; }
+.skin-brick .bx-pq__meta .bx-timer__secs, .skin-bsod .bx-pq__meta .bx-timer__secs { font-size: 26px; }
+.bx-coins { font-weight: 400; }
+[data-theme="xp"] .bx-coins { font-size: 12px; }
+.bx-chip { font-family: var(--font-num); font-size: 12px; font-weight: 400; padding: 0 2px; letter-spacing: -0.5px; }
+.bx-wager-total b { font-family: var(--font-num); font-size: 24px; font-weight: 400; }
+.bx-answer__count { font-family: var(--font-num); font-size: 13px; font-weight: 400; line-height: 1.3; }
+.bx-pin span { font-family: var(--font-num); font-size: 24px; font-weight: 400; }
+.bx-podium__block { font-family: var(--font-num); font-size: 28px; font-weight: 400; }
+.bx-plan td:first-child { font-family: var(--font-num); font-size: 10px; font-weight: 400; }
+.bx-sale__clock { font-family: var(--font-num); font-size: 16px; font-weight: 400; }
+.app-big { font: 400 52px/60px var(--font-num); }
+.app-num-input { font: 400 22px/32px var(--font-num) !important; letter-spacing: 2px; }
+
+/* ---------- Igloo Island: snow ground pinned to the bottom of the screen, igloo standing on it */
+.skin-igloo {
+  background:
+    radial-gradient(circle at 20% 30%, var(--window) 0 2px, transparent 3px) 0 0 / 46px 46px,
+    radial-gradient(circle at 70% 70%, var(--window) 0 3px, transparent 4px) 0 0 / 70px 70px,
+    var(--desktop);
+}
+.skin-igloo::before {
+  content: ""; position: absolute; z-index: 0; left: -15%; right: -15%; bottom: 0; height: 84px; pointer-events: none;
+  background: var(--window); border-top: 3px solid var(--frame); border-radius: 50% 50% 0 0 / 34px 34px 0 0;
+}
+.app-igloo { position: absolute; z-index: 0; right: 14px; bottom: 58px; pointer-events: none; }
+.skin-igloo > .bx-pq { position: relative; z-index: 1; }
+
+/* ---------- Modal layer: the troll "illegal operation" dialog after a wrong answer.
+   Top layer of the phone; everything behind is dimmed but visible. */
+.app-modal { position: absolute; inset: 0; z-index: 45; display: grid; place-items: center; padding: 16px; background: rgba(0, 0, 0, 0.55); }
+.app-modal > .bx-dialog { width: 100%; max-width: 380px; }
+
+/* ---------- Roaming chaos (4D ticket bounces like the DVD logo; the eyePad pop-up sweeps up and down).
+   Top layer, but tap-through: only its buttons catch taps, so answers underneath stay tappable. */
+.app-roam { position: absolute; inset: 0; z-index: 44; overflow: hidden; pointer-events: none; }
+.app-roam__item { position: absolute; left: 0; top: 0; will-change: transform; pointer-events: none; }
+.app-roam__item button { pointer-events: auto; }
+.app-roam__item .bx-dialog { width: min(330px, calc(100vw - 24px)); }
+.app-roam__item .bx-4d { width: min(280px, calc(100vw - 24px)); }

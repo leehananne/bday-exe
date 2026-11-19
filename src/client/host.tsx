@@ -442,7 +442,7 @@ function EnterNumber({ v, room }: { v: View; room: Room }) {
     <div className="bx-phone__main">
       <Window title="What's the real number?" style={{ flex: 'none' }}>
         <div className="bx-body bx-stack"><p className="phone-body app-nomargin">Check your phone. Be honest. Everyone is watching.</p>
-          <div className="bx-address__field"><input value={val} inputMode="numeric" pattern="[0-9]*" aria-label="Real number" onChange={(e) => setVal(e.target.value.replace(/\D/g, '').slice(0, 9))} style={{ font: '700 28px/36px var(--font-pixel)' }} /></div></div>
+          <div className="bx-address__field"><input value={val} inputMode="numeric" pattern="[0-9]*" aria-label="Real number" onChange={(e) => setVal(e.target.value.replace(/\D/g, '').slice(0, 9))} className="app-num-input" /></div></div>
       </Window>
       <Window title="Closest guesses" style={{ flex: 1 }}>
         <div className="app-scroll" style={{ flex: 1 }}>

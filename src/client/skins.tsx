@@ -55,11 +55,13 @@ export function SkinShell({ skin, view, children, coins, poke, pqStyle }: {
       );
     case 'igloo':
       return (
-        <div className="bx-pq" style={pqStyle}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}><span className="igloo-display" style={{ color: 'var(--window-ink)' }}>Brrr-thday Quiz!</span><span className="bx-coins">◎ {fmt(coins ?? 0)}</span></div>
-          {children}
-          <svg style={{ alignSelf: 'flex-end', flex: 'none' }} width="96" height="52" viewBox="0 0 26 14" aria-hidden="true"><path d="M1 14a12 12 0 0 1 24 0z" style={{ fill: 'var(--window)', stroke: 'var(--frame)', strokeWidth: 0.5 }} /><path d="M3 10h20M6 6.5h14M10 3.5h6M7 10v4M19 10v4M9 6.5v3.5M16 6.5v3.5" style={{ stroke: 'var(--frame)', strokeWidth: 0.35, fill: 'none' }} /><path d="M10 14v-3a3 3 0 0 1 6 0v3z" style={{ fill: 'var(--frame)' }} /></svg>
-        </div>
+        <>
+          <div className="bx-pq" style={pqStyle}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}><span className="igloo-display" style={{ color: 'var(--window-ink)' }}>Brrr-thday Quiz!</span><span className="bx-coins">◎ {fmt(coins ?? 0)}</span></div>
+            {children}
+          </div>
+          <svg className="app-igloo" width="96" height="52" viewBox="0 0 26 14" aria-hidden="true"><path d="M1 14a12 12 0 0 1 24 0z" style={{ fill: 'var(--window)', stroke: 'var(--frame)', strokeWidth: 0.5 }} /><path d="M3 10h20M6 6.5h14M10 3.5h6M7 10v4M19 10v4M9 6.5v3.5M16 6.5v3.5" style={{ stroke: 'var(--frame)', strokeWidth: 0.35, fill: 'none' }} /><path d="M10 14v-3a3 3 0 0 1 6 0v3z" style={{ fill: 'var(--frame)' }} /></svg>
+        </>
       );
     case 'fakebook':
       return (
@@ -329,7 +331,7 @@ export function NumberEntry({ skin, initial, onSubmit, view, left, prompt, overl
   if (skin === 'brick') return <><div className="bx-chaos-zone" style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>{lcd}{overlay}</div><Keypad onKey={key} /></>;
   return (
     <div className="bx-pq__card bx-stack" style={{ gap: 8 }}>
-      <div className="bx-address__field"><input inputMode="numeric" pattern="[0-9]*" value={v} onChange={(e) => setV(e.target.value.replace(/\D/g, '').slice(0, 9))} aria-label="Your guess" style={{ font: '700 28px/36px var(--font-pixel)' }} /></div>
+      <div className="bx-address__field"><input className="app-num-input" inputMode="numeric" pattern="[0-9]*" value={v} onChange={(e) => setV(e.target.value.replace(/\D/g, '').slice(0, 9))} aria-label="Your guess" /></div>
       <button className="bx-btn bx-btn--primary bx-btn--lg bx-btn--block" disabled={!v} onClick={() => onSubmit(Number(v))}>Send guess</button>
     </div>
   );

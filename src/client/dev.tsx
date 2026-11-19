@@ -2,7 +2,7 @@
 // state (no server), with an optional chaos event forced on. Used by the layering test and for
 // eyeballing skins without running a whole game.
 import { useMemo } from 'react';
-import { apply, join, newGame, tick, TIMING } from '../shared/game';
+import { apply, join, newGame, stepsFor, tick, TIMING } from '../shared/game';
 import { parseQuestions } from '../shared/questions';
 import type { ChaosKind } from '../shared/types';
 import { viewFor } from '../shared/views';
@@ -38,6 +38,16 @@ export function DevPreview() {
     if (answered) {
       const q = s.questions[qn - 1];
       apply(s, { role: 'player', pid: 'p0' }, { t: 'answer', v: q.type === 'mc' ? 1 : q.type === 'number' ? 42 : q.type === 'crowd' ? 'p1' : 'mcfly' }, now);
+    }
+    // ?reveal=points (or split/answer): answer wrong on purpose, close answers, step to that reveal step
+    const reveal = qs.get('reveal');
+    if (reveal && s.phase === 'ANSWER') {
+      const q = s.questions[qn - 1];
+      if (q.type === 'mc') apply(s, { role: 'player', pid: 'p0' }, { t: 'answer', v: ((q.answer ?? 0) + 1) % (q.options?.length ?? 2) }, now);
+      apply(s, { role: 'host' }, { t: 'endNow' }, now); tick(s, now);
+      if ((s.phase as string) === 'JUDGE') { if (q.type === 'number') apply(s, { role: 'host' }, { t: 'setReal', value: 1 }, now); apply(s, { role: 'host' }, { t: 'finishJudging' }, now); }
+      apply(s, { role: 'host' }, { t: 'setFlags', autoReveal: false }, now);
+      while ((s.phase as string) === 'REVEAL' && stepsFor(s)[s.revealStep] !== reveal) apply(s, { role: 'host' }, { t: 'revealNext' }, now);
     }
     if (kind && s.phase === 'ANSWER') {
       s.chaosQueue.push({

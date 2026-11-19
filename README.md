@@ -89,6 +89,13 @@ npm run deploy
 | `npm test` | Engine unit tests (vitest), including the reveal autopilot |
 | `node test/e2e.mjs` | Host and 3 players play all 10 questions in Chromium against `wrangler dev`, then a reload restores the same seat |
 | `node test/e2e-chaos.mjs` | Live chaos with 9 phones at 360/390/430 px: overlays never touch answers or the timer, and answers stay tappable |
-| `node test/layout.mjs` | Deterministic: all 11 chaos kinds × 10 skins × answer/waiting × 360/390/430 px (1,710 checks) |
+| `node test/layout.mjs` | Deterministic: all 11 chaos kinds × 10 skins × answer/waiting × 360/390/430 px |
+
+**Chaos layering.** Most pop-ups stay inside the question card and never touch the answers, input or timer (PRD §8a).
+Two deliberately break that rule for comedy: the **4D ticket** bounces around the whole screen like the DVD logo, and the
+**eyePad** pop-up sweeps up and down it. Both are the top layer but tap-through, so only their buttons catch taps and
+the answers underneath always work. In Calm mode or with reduced motion they sit still in the middle.
+
+**Fonts.** Numbers use Press Start 2P (`public/fonts/`, SIL Open Font License, see `OFL.txt`).
 
 `/dev/preview?q=5&kind=bday_sale` renders any player screen from real engine state with no server needed.

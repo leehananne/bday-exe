@@ -257,11 +257,12 @@
   --font-script: Pacifico, "Brush Script MT", cursive;
   --font-lcd: VT323, "Lucida Console", "Courier New", monospace;
   --font-web1999: "Times New Roman", Times, serif;
+  --font-num: "Press Start 2P", "Courier New", monospace;
 }
 .phone-question { font-family: var(--font-ui); font-size: 24px; line-height: 30px; font-weight: 700; }
 .phone-answer { font-family: var(--font-ui); font-size: 18px; line-height: 24px; font-weight: 700; }
-.phone-display { font-family: var(--font-pixel); font-size: 40px; line-height: 44px; font-weight: 700; }
-.phone-timer { font-family: var(--font-pixel); font-size: 28px; line-height: 32px; font-weight: 700; }
+.phone-display { font-family: var(--font-num); font-size: 32px; line-height: 40px; font-weight: 400; }
+.phone-timer { font-family: var(--font-num); font-size: 22px; line-height: 28px; font-weight: 400; }
 .phone-title { font-family: var(--font-ui); font-size: 20px; line-height: 26px; font-weight: 700; }
 .phone-button { font-family: var(--font-ui); font-size: 18px; line-height: 22px; font-weight: 700; }
 .phone-body { font-family: var(--font-ui); font-size: 16px; line-height: 22px; font-weight: 400; }
@@ -274,3 +275,4 @@
 .comic-body { font-family: var(--font-comic); font-size: 18px; line-height: 24px; font-weight: 700; }
 .lcd-display { font-family: var(--font-lcd); font-size: 26px; line-height: 28px; font-weight: 400; }
 .web1999 { font-family: var(--font-web1999); font-size: 22px; line-height: 28px; font-weight: 700; }
+@font-face { font-family: "Press Start 2P"; src: url("/fonts/PressStart2P-Regular.ttf") format("truetype"); font-weight: 400 700; font-style: normal; font-display: swap; }
