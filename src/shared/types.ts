@@ -81,6 +81,8 @@ export interface Judging {
   verdicts: Record<string, Verdict>;
   /** fave */
   crowned: PlayerId | null;
+  /** Which of the crowned player's answers was crowned (they can send several). */
+  crownedIdx?: number | null;
   lols: PlayerId[];
   /** number */
   real: number | null;
@@ -101,6 +103,8 @@ export interface Round {
   result: QResult | null;
   skipped: boolean;
   answerStart: number | null;
+  /** Typed / Host's Fave: every answer each player sent (they can send as many as they like). */
+  texts?: Record<PlayerId, string[]>;
 }
 
 export type Phase = 'LOBBY' | 'MODIFIER' | 'BET' | 'ANSWER' | 'JUDGE' | 'REVEAL' | 'LEADERBOARD' | 'PODIUM';

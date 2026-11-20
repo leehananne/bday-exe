@@ -273,7 +273,7 @@ export function TextInput({ skin, max, initial, onSubmit, label, cta }: {
   const [focus, setFocus] = useState(false);
   const [touched, setTouched] = useState(!!initial); // the IE pointer hint shows until the bar is tapped
   const sug = useMemo(() => (skin === 'ie' && focus ? trollSuggest(v) : []), [skin, v, focus]);
-  const submit = (e?: React.FormEvent) => { e?.preventDefault(); const t = v.trim(); if (t) onSubmit(t); };
+  const submit = (e?: React.FormEvent) => { e?.preventDefault(); const t = v.trim(); if (t) { onSubmit(t); setV(''); } }; // clears: send as many as u want
   if (skin === 'insta') {
     return (
       <>

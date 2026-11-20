@@ -410,7 +410,9 @@ function AnswerScreen(p: GP) {
   }
 
   // Waiting after lock-in (DS PlayerWaiting): reactions float, buddies still thinking, change answer.
-  if (me.answer != null && !editing) {
+  // Typed / fave: no waiting screen. The box stays so they can keep sending answers.
+  const many = q.type === 'typed' || q.type === 'fave';
+  if (me.answer != null && !editing && !many) {
     return (
       <SkinShell skin={q.skin} view={v} coins={me.score} poke={p.poke}>
         {ann}
@@ -442,10 +444,10 @@ function AnswerScreen(p: GP) {
       input = <CrowdGrid choices={q.choices ?? []} selected={me.answer as string | null} onPick={send} />;
       break;
     case 'typed':
-      input = <TextInput skin={q.skin} max={LIMITS.typed} initial={me.answer as string | undefined} label="Your answer" cta={q.skin === 'ie' ? 'Go' : 'Send'} onSubmit={send} />;
+      input = <TextInput skin={q.skin} max={LIMITS.typed} label={me.texts.length ? 'Another answer? Send as many as u want' : 'Your answer'} cta={q.skin === 'ie' ? 'Go' : 'Send'} onSubmit={send} />;
       break;
     case 'fave':
-      input = <TextInput skin={q.skin} max={LIMITS.fave} initial={me.answer as string | undefined} label="Your answer (anonymous until crowned)" cta={q.skin === 'dollz' ? 'Send to the runway ♥' : 'Send'} onSubmit={send} />;
+      input = <TextInput skin={q.skin} max={LIMITS.fave} label={me.texts.length ? 'Another one? Send as many as u want (anonymous until crowned)' : 'Your answer (anonymous until crowned)'} cta={q.skin === 'dollz' ? 'Send to the runway ♥' : 'Send'} onSubmit={send} />;
       break;
     case 'number':
       input = <NumberEntry skin={q.skin} initial={me.answer as number | null} onSubmit={send} view={v} left={left} prompt={q.prompt ?? ''} />;
@@ -477,19 +479,41 @@ function AnswerScreen(p: GP) {
     <SkinShell skin={q.skin} view={v} coins={me.score} poke={p.poke}>
       {ann}
       {q.skin !== 'ie' && <Meta skin={q.skin} view={v} left={left} typing={q.skin === 'fakebook' ? typing : undefined} />}
-      {q.skin === 'ie' && q.type === 'typed' && input}
+      {q.skin === 'ie' && q.type === 'typed' && <>{input}<SentList v={v} room={room} /></>}
       {q.skin === 'myspaze'
         ? <><div className="bx-chaos-zone app-zone"><div className="bx-ms-box"><h3>Anne's Friend Space · {q.category}</h3><div style={{ padding: '10px 12px' }}><QuestionText skin="myspaze" prompt={q.prompt ?? ''} /></div></div>{overlay}</div><div className="bx-ms-box app-answers-box">{input}</div></>
         : card}
       {ieTimer}
       {q.skin === 'ie' && q.type !== 'typed' && <div style={{ padding: 12, flex: 1, display: 'flex', flexDirection: 'column' }}>{input}</div>}
+      {many && q.skin === 'insta' && <SentList v={v} room={room} />}
       {q.skin !== 'ie' && q.skin !== 'myspaze' && input}
+      {many && q.skin !== 'insta' && q.skin !== 'ie' && <SentList v={v} room={room} />}
       {lockedNote}
       {q.skin === 'xp' && q.type === 'mc' && <div style={{ display: 'flex', gap: 16, flex: 'none' }}><div className="bx-desk-icon"><svg width="28" height="28" viewBox="0 0 8 8" aria-hidden="true"><rect x="1" y="1" width="6" height="1" style={{ fill: 'var(--bevel-dark)' }} /><path d="M1.5 2h5l-.6 6H2.1z" style={{ fill: 'var(--button)' }} /></svg><span>Wrong Answers ({Math.max(0, q.seconds - left)})</span></div></div>}
       {q.skin === 'myspaze' && <div className="bx-ms-box" style={{ padding: '8px 12px', font: '700 14px/20px var(--font-comic)', flex: 'none' }}><a href="#" onClick={(e) => e.preventDefault()}>{thinking[0]?.name ?? pickName(v, 'pc4pc')}</a>: thanks 4 the add!!! pc4pc?</div>}
       {q.type === 'fave' && v.powerups && me.power.nudge > 0 && left > 5 && <div className="bx-pq__foot"><ReactionBar onReact={(e) => room.act({ t: 'react', e })} only={3} /><button className="bx-btn" onClick={() => setSheet('nudge')}>👉 Nudge</button></div>}
       {sheet && <PowerUps v={v} room={room} sheet={sheet} setSheet={setSheet} />}
     </SkinShell>
+  );
+}
+
+/** Typed / fave: what I've sent so far (as Instagran comments, or a small list), each removable. */
+function SentList({ v, room }: { v: View; room: Room }) {
+  const me = v.me!;
+  if (!me.texts.length) return null;
+  const x = (t: string, i: number) => <button className="app-sent__x" aria-label={`Delete "${t}"`} onClick={() => room.act({ t: 'removeText', i })}>✕</button>;
+  if (v.question?.skin === 'insta') {
+    return (
+      <ul className="bx-ig-comments app-sent app-scroll" aria-label="Your comments">
+        {me.texts.map((t, i) => <li key={`${i}-${t}`}><b>you</b> {t} {x(t, i)}</li>)}
+      </ul>
+    );
+  }
+  return (
+    <div className="bx-pq__card app-sent app-scroll" aria-label="Your answers">
+      <p className="caption app-nomargin" style={{ opacity: 0.85 }}>Sent ({me.texts.length}) · keep 'em coming</p>
+      <ul>{me.texts.map((t, i) => <li key={`${i}-${t}`}><span>{t}</span>{x(t, i)}</li>)}</ul>
+    </div>
   );
 }
 
@@ -525,7 +549,7 @@ function Judging(p: GP) {
         <div className="bx-stack app-center-text">
           <Hourglass />
           <p className="phone-body app-nomargin">{line}<span className="bx-anim-blink">_</span></p>
-          {v.me?.answer != null && <p className="caption app-nomargin" style={{ opacity: 0.85 }}>You said: {answerLabel(v, v.me.answer)}</p>}
+          {v.me?.answer != null && <p className="caption app-nomargin" style={{ opacity: 0.85 }}>You said: {v.me.texts.length ? v.me.texts.join(' · ') : answerLabel(v, v.me.answer)}</p>}
         </div>
       </Card>
       <ReactStage floats={p.floats} style={{ flex: '1 1 0', minHeight: 0 }} />

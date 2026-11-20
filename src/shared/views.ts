@@ -2,7 +2,7 @@
 // future modifiers, the MYSTERY draw, or other players' answers before the matching reveal step.
 import { validate } from './modifiers';
 import {
-  activeChaosFor, active, autoOf, chipsLeft, chopeFor, crowdTally, cur, curQ, lockedIn, N, resolvedMod, standings, stepsFor,
+  activeChaosFor, active, autoOf, chipsLeft, textsOf, chopeFor, crowdTally, cur, curQ, lockedIn, N, resolvedMod, standings, stepsFor,
   totals, typedGroups, visibleThrough, type TypedGroup,
 } from './game';
 import { hash } from './rng';
@@ -43,6 +43,8 @@ export interface PodiumView { top: BoardRow[]; awards: Award[]; age: string | nu
 export interface MeView {
   id: PlayerId; name: string; avatar: number;
   chips: number[]; bet: number | null; answer: AnswerValue | null;
+  /** Typed / fave: everything I sent this question. */
+  texts: string[];
   power: { nudge: number; popup: number };
   score: number; rank: number;
   chaos: ChaosEvent | null; chope: ChaosEvent | null;
@@ -55,9 +57,11 @@ export interface HostView {
   questions: Question[]; plan: ModifierId[]; locked: boolean[]; planErrors: string[]; planSeed: number; seed: number;
   chaos: ChaosConfig;
   bets: Record<PlayerId, number>; answers: Record<PlayerId, AnswerValue>;
+  /** Typed / fave: every answer each player sent. */
+  texts: Record<PlayerId, string[]>;
   groups: TypedGroup[]; tally: Record<string, number>;
   mystery: Resolved | null;
-  judging: { crowned: PlayerId | null; lols: PlayerId[]; real: number | null };
+  judging: { crowned: PlayerId | null; crownedIdx: number | null; lols: PlayerId[]; real: number | null };
   chaosLog: { id: string; kind: string; player: string; fired: boolean; ended: boolean; from?: string }[];
   live: BoardRow[];
   scoreTotals: Record<PlayerId, number>;
@@ -120,7 +124,7 @@ function revealView(s: GameState): RevealView | null {
       case 'typed': split = { type: 'typed', answers: answers.length, groups: typedGroups(s).length }; break;
       case 'fave': {
         const entries = answers
-          .map(([pid, a]) => ({ i: 0, text: String(a.v), h: hash(s.seed, 'fave', pid) }))
+          .flatMap(([pid]) => textsOf(r, pid).map((text, k) => ({ i: 0, text, h: hash(s.seed, 'fave', pid, k) })))
           .sort((x, y) => x.h - y.h)
           .map((e, i) => ({ i: i + 1, text: e.text }));
         split = { type: 'fave', entries };
@@ -148,8 +152,8 @@ function revealView(s: GameState): RevealView | null {
         const c = r.judging.crowned;
         answer = {
           type: 'fave',
-          crowned: c ? { pid: c, name: name(c), avatar: s.players[c]?.avatar ?? 0, text: String(r.answers[c]?.v ?? '') } : null,
-          lols: r.judging.lols.map((pid) => ({ pid, name: name(pid), text: String(r.answers[pid]?.v ?? '') })),
+          crowned: c ? { pid: c, name: name(c), avatar: s.players[c]?.avatar ?? 0, text: textsOf(r, c)[r.judging.crownedIdx ?? -1] ?? String(r.answers[c]?.v ?? '') } : null,
+          lols: r.judging.lols.map((pid) => ({ pid, name: name(pid), text: textsOf(r, pid).join(' / ') })),
         };
         break;
       }
@@ -270,7 +274,7 @@ export function viewFor(s: GameState, who: { role: 'host' } | { role: 'player'; 
       const pts = reveal?.points;
       v.me = {
         id: p.id, name: p.name, avatar: p.avatar,
-        chips: chipsLeft(s, p.id), bet: r?.bets[p.id] ?? null, answer: r?.answers[p.id]?.v ?? null,
+        chips: chipsLeft(s, p.id), bet: r?.bets[p.id] ?? null, answer: r?.answers[p.id]?.v ?? null, texts: r ? textsOf(r, p.id) : [],
         power: { ...p.power },
         score: mine?.score ?? 0, rank: mine?.rank ?? st.length,
         chaos: s.phase === 'ANSWER' ? activeChaosFor(s, p.id) : null,
@@ -287,10 +291,11 @@ export function viewFor(s: GameState, who: { role: 'host' } | { role: 'player'; 
       planSeed: s.planSeed, seed: s.seed, chaos: s.chaos,
       bets: r?.bets ?? {},
       answers: Object.fromEntries(Object.entries(r?.answers ?? {}).map(([k, a]) => [k, a.v])),
+      texts: r ? Object.fromEntries(Object.keys(r.answers).map((k) => [k, textsOf(r, k)])) : {},
       groups: q?.type === 'typed' ? typedGroups(s) : [],
       tally: q?.type === 'crowd' ? crowdTally(s).counts : {},
       mystery: r?.mystery ?? null,
-      judging: { crowned: r?.judging.crowned ?? null, lols: r?.judging.lols ?? [], real: r?.judging.real ?? null },
+      judging: { crowned: r?.judging.crowned ?? null, crownedIdx: r?.judging.crownedIdx ?? null, lols: r?.judging.lols ?? [], real: r?.judging.real ?? null },
       chaosLog: s.chaosQueue.filter((e) => e.fired).map((e) => ({
         id: e.id, kind: e.kind, player: s.players[e.player]?.name ?? '?', fired: !!e.fired, ended: !!e.ended,
         from: e.from ? s.players[e.from]?.name : undefined,

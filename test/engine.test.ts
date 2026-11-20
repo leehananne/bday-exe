@@ -409,4 +409,45 @@ describe('game flow', () => {
       expect(validate(s.plan, qs).ok).toBe(true);
     }
   });
+
+  it('typed: players can send as many answers as they like; any accepted one wins; dupes and >20 are refused; remove works', () => {
+    const g = new Sim(2);
+    g.s.chaos.intensity = 'off';
+    g.s.plan = ['normal', 'double', 'normal', 'risky', 'double', 'normal', 'trouble', 'normal', 'double', 'trouble'];
+    g.host({ t: 'start' });
+    for (let q = 1; q <= 3; q++) { g.toAnswer(); g.endBet(); g.endAnswer(); g.revealAll(); g.host({ t: 'next' }); }
+    g.toAnswer(); g.pl(0, { t: 'bet', chip: 500 }); g.pl(1, { t: 'bet', chip: 500 }); g.endBet();
+    for (const v of ['busted', 'Nickelback', 'McFly']) expect(g.pl(0, { t: 'answer', v }).ok).toBe(true);
+    expect(g.pl(0, { t: 'answer', v: 'Mc Fly' }).ok).toBe(true); // a different spelling is a new entry…
+    expect(g.pl(0, { t: 'answer', v: 'mcfly' }).ok).toBe(false); // …a repeat (ignoring capitals) isn't
+    for (let i = 0; i < 20; i++) g.pl(1, { t: 'answer', v: `band ${i}` });
+    expect(g.pl(1, { t: 'answer', v: 'one too many' }).ok).toBe(false);
+    expect(viewFor(g.s, { role: 'player', pid: 'p1' }, g.now).me!.texts).toHaveLength(20);
+    expect(g.pl(1, { t: 'removeText', i: 0 }).ok).toBe(true);
+    expect(viewFor(g.s, { role: 'player', pid: 'p1' }, g.now).me!.texts[0]).toBe('band 1');
+    g.endAnswer();
+    const groups = viewFor(g.s, { role: 'host' }, g.now).host!.groups;
+    expect(groups.find((x) => x.key === 'mcfly')).toMatchObject({ verdict: 'right', pids: ['p0'] });
+    g.host({ t: 'finishJudging' });
+    expect(g.s.rounds[3].result!.outcome).toEqual({ p0: 'right', p1: 'wrong' }); // RISKY: p1's 19 guesses all wrong
+    expect(g.s.rounds[3].result!.delta).toEqual({ p0: 500, p1: -500 });
+  });
+
+  it('fave: every sent answer is its own anonymous entry; the crowned entry is the one revealed', () => {
+    const g = new Sim(2);
+    g.s.chaos.intensity = 'off';
+    g.host({ t: 'start' });
+    for (let q = 1; q <= 5; q++) { g.toAnswer(); g.endBet(); g.endAnswer(); if (g.s.phase === 'JUDGE') g.host({ t: 'finishJudging' }); g.revealAll(); g.host({ t: 'next' }); }
+    g.toAnswer(); g.endBet();
+    g.pl(0, { t: 'answer', v: 'feather boa' }); g.pl(0, { t: 'answer', v: 'crocs + tiara' }); g.pl(1, { t: 'answer', v: 'ur mum' });
+    g.endAnswer();
+    expect(viewFor(g.s, { role: 'host' }, g.now).host!.texts.p0).toEqual(['feather boa', 'crocs + tiara']);
+    g.host({ t: 'crown', pid: 'p0', i: 1 });
+    g.host({ t: 'finishJudging' });
+    const v = viewFor(g.s, { role: 'player', pid: 'p1' }, g.now).reveal!;
+    expect(v.split).toMatchObject({ type: 'fave' });
+    expect((v.split as any).entries).toHaveLength(3);
+    g.host({ t: 'revealNext' });
+    expect((viewFor(g.s, { role: 'player', pid: 'p1' }, g.now).reveal!.answer as any).crowned.text).toBe('crocs + tiara');
+  });
 });

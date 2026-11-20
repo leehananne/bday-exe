@@ -76,6 +76,13 @@ npm run deploy
    Kahoot-style. Tap **Next ▶** to skip ahead or **⏸ Hold** to stop on a moment. The leaderboard waits for your **Start Q▶**
    unless you switch on *Autopilot next question* (☰ or the lobby), which starts it after 10s. ☰ has Calm mode, power-ups, kick and Reset game (for the rehearsal).
 
+## Multiple answers
+
+On **typed** and **Host's Fave** questions players can send as many answers as they like (up to 20, no exact repeats):
+the box stays after each send and their answers are listed underneath with a ✕ to delete. Typed: any accepted answer
+counts as right. Fave: every answer is its own anonymous entry and you crown a specific one. Multiple choice, closest
+number and Crowd's Pick stay one answer each (changeable until time's up).
+
 ## Closing a room
 
 **☰ → Close room** (or **Shut down party** on the podium) deletes the room's saved game, sends every phone to a

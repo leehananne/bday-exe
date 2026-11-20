@@ -27,6 +27,16 @@ export const CHIPS = [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000];
 export const REACTIONS = ['😂', '💀', '🎂', '🔥', ':P', ';)', '(Y)', '🤡'] as const;
 export const MAX_PLAYERS = 40;
 export const LATE_JOIN_UNTIL = 3;
+/** Typed / Host's Fave: how many answers one player may send to a question. */
+export const MAX_TEXTS = 20;
+
+/** Every answer a player sent to a typed / fave question (older rooms only stored the last one). */
+export function textsOf(r: Round, pid: PlayerId): string[] {
+  const t = r.texts?.[pid];
+  if (t?.length) return t;
+  return r.answers[pid] ? [String(r.answers[pid].v)] : [];
+}
+const multi = (q: Question | null) => q?.type === 'typed' || q?.type === 'fave';
 
 export type Action =
   // host
@@ -42,7 +52,7 @@ export type Action =
   | { t: 'addTime' }
   | { t: 'endNow' }
   | { t: 'judge'; key: string; verdict: Verdict | null }
-  | { t: 'crown'; pid: PlayerId | null }
+  | { t: 'crown'; pid: PlayerId | null; i?: number }
   | { t: 'lol'; pid: PlayerId }
   | { t: 'setReal'; value: number | null }
   | { t: 'finishJudging' }
@@ -57,6 +67,7 @@ export type Action =
   // player
   | { t: 'bet'; chip: number }
   | { t: 'answer'; v: AnswerValue }
+  | { t: 'removeText'; i: number }
   | { t: 'react'; e: string }
   | { t: 'nudge'; to: PlayerId }
   | { t: 'popup'; to: PlayerId }
@@ -84,7 +95,7 @@ const fail = (error: string): ApplyResult => ({ ok: false, error, changed: false
 export const DEFAULT_CHAOS: ChaosConfig = { intensity: 'chaos', enabled: [...ALL_KINDS], mercy: false };
 
 export function emptyRound(): Round {
-  return { bets: {}, answers: {}, judging: { verdicts: {}, crowned: null, lols: [], real: null }, mystery: null, result: null, skipped: false, answerStart: null };
+  return { bets: {}, answers: {}, texts: {}, judging: { verdicts: {}, crowned: null, crownedIdx: null, lols: [], real: null }, mystery: null, result: null, skipped: false, answerStart: null };
 }
 
 export function newGame(o: { pin: string; secretHash: string; questions: Question[]; seed: number; now: number }): GameState {
@@ -177,14 +188,16 @@ export function typedGroups(s: GameState, q = s.q): TypedGroup[] {
   const r = s.rounds[q - 1];
   const accept = (question.accept ?? []).map(norm);
   const by = new Map<string, { raws: Map<string, number>; pids: PlayerId[] }>();
-  for (const [pid, a] of Object.entries(r.answers)) {
+  for (const pid of Object.keys(r.answers)) {
     if (!s.players[pid] || s.players[pid].kicked) continue;
-    const raw = String(a.v).trim();
-    const key = norm(raw) || raw.toLowerCase();
-    const g = by.get(key) ?? { raws: new Map<string, number>(), pids: [] as PlayerId[] };
-    g.raws.set(raw, (g.raws.get(raw) ?? 0) + 1);
-    g.pids.push(pid);
-    by.set(key, g);
+    for (const text of textsOf(r, pid)) {
+      const raw = text.trim();
+      const key = norm(raw) || raw.toLowerCase();
+      const g = by.get(key) ?? { raws: new Map<string, number>(), pids: [] as PlayerId[] };
+      g.raws.set(raw, (g.raws.get(raw) ?? 0) + 1);
+      if (!g.pids.includes(pid)) g.pids.push(pid);
+      by.set(key, g);
+    }
   }
   const groups = [...by.entries()].map(([key, g]) => {
     const display = [...g.raws.entries()].sort((a, b) => b[1] - a[1])[0][0];
@@ -241,8 +254,9 @@ export function computeResult(s: GameState, q = s.q): QResult {
         break;
       case 'typed': {
         if (a) {
-          const g = groups.find((g) => g.pids.includes(pid));
-          o = g?.verdict === 'right' ? 'right' : g?.verdict === 'lol' ? 'lol' : 'wrong';
+          // Several answers allowed: any accepted one wins; otherwise a +lol one; otherwise wrong.
+          const mine = groups.filter((g) => g.pids.includes(pid));
+          o = mine.some((g) => g.verdict === 'right') ? 'right' : mine.some((g) => g.verdict === 'lol') ? 'lol' : 'wrong';
         }
         break;
       }
@@ -579,6 +593,7 @@ export function apply(s: GameState, actor: Actor, a: Action, now: number): Apply
         if (s.phase !== 'JUDGE' || q?.type !== 'fave') return fail('Not picking a fave');
         if (a.pid != null && !r!.answers[a.pid]) return fail('No such answer');
         r!.judging.crowned = a.pid;
+        r!.judging.crownedIdx = a.pid != null && Number.isInteger(a.i) ? a.i! : null;
         r!.judging.lols = r!.judging.lols.filter((p) => p !== a.pid);
         return ok();
       }
@@ -693,7 +708,24 @@ export function apply(s: GameState, actor: Actor, a: Action, now: number): Apply
       if (r!.bets[me.id] == null) return fail("You joined mid-question. You're in from the next one.");
       const v = validAnswer(s, q!, a.v);
       if (v == null) return fail('That answer is not valid');
+      if (multi(q)) {
+        const list = [...textsOf(r!, me.id)];
+        if (list.some((t) => norm(t) === norm(String(v)) && t.toLowerCase() === String(v).toLowerCase())) return fail('You already sent that one');
+        if (list.length >= MAX_TEXTS) return fail(`That's ${MAX_TEXTS} answers. Calm down.`);
+        list.push(String(v));
+        (r!.texts ??= {})[me.id] = list;
+      }
       r!.answers[me.id] = { v, at: now };
+      return ok();
+    }
+    case 'removeText': {
+      if (s.phase !== 'ANSWER' || !multi(q)) return fail('Answers are closed');
+      const list = [...textsOf(r!, me.id)];
+      if (!(a.i >= 0 && a.i < list.length)) return fail('No such answer');
+      list.splice(a.i, 1);
+      (r!.texts ??= {})[me.id] = list;
+      if (list.length) r!.answers[me.id] = { v: list[list.length - 1], at: now };
+      else delete r!.answers[me.id];
       return ok();
     }
     case 'react':

@@ -391,7 +391,7 @@ function JudgeTyped({ v, room }: { v: View; room: Room }) {
   const pending = groups.filter((g) => g.verdict == null).length;
   return (
     <div className="bx-phone__main">
-      <Window title={`${Object.keys(h.answers).length} answers · ${groups.length} groups`} style={{ flex: 1 }}>
+      <Window title={`${Object.keys(h.answers).length} player${Object.keys(h.answers).length === 1 ? "" : "s"} · ${groups.length} answer${groups.length === 1 ? "" : "s"}`} style={{ flex: 1 }}>
         <div className="app-scroll" style={{ flex: 1 }}>
           <table className="bx-table"><thead><tr><th>Answer</th><th className="num">#</th><th>Verdict</th></tr></thead><tbody>
             {groups.map((g) => (
@@ -419,7 +419,7 @@ function JudgeTyped({ v, room }: { v: View; room: Room }) {
 
 function PickFave({ v, room }: { v: View; room: Room }) {
   const h = v.host!;
-  const entries = useMemo(() => Object.entries(h.answers).map(([pid, a], i) => ({ pid, text: String(a), i: i + 1 })), [JSON.stringify(h.answers)]);
+  const entries = useMemo(() => Object.entries(h.texts).flatMap(([pid, list]) => list.map((text, k) => ({ pid, k, text }))).map((e, i) => ({ ...e, i: i + 1 })), [JSON.stringify(h.texts)]);
   const lolsLeft = 3 - h.judging.lols.length;
   const [mode, setMode] = useState<'crown' | 'lol'>('crown');
   return (
@@ -428,11 +428,11 @@ function PickFave({ v, room }: { v: View; room: Room }) {
       <div className="bx-seg" role="group" aria-label="Tap mode"><button aria-pressed={mode === 'crown'} onClick={() => setMode('crown')}>★ Crown</button><button aria-pressed={mode === 'lol'} onClick={() => setMode('lol')}>+lol ({lolsLeft} left)</button><button disabled>{entries.length} looks</button></div>
       <div className="bx-faves app-scroll" style={{ gridTemplateColumns: '1fr 1fr', gap: 10, flex: 1, alignContent: 'start', paddingTop: 12 }} role="group" aria-label="Answers">
         {entries.map((e) => {
-          const crowned = h.judging.crowned === e.pid;
+          const crowned = h.judging.crowned === e.pid && (h.judging.crownedIdx == null || h.judging.crownedIdx === e.k);
           const lol = h.judging.lols.includes(e.pid);
           return (
-            <button key={e.pid} className={`bx-fave ${crowned ? 'is-crowned' : ''} ${lol ? 'is-lol' : ''}`} aria-pressed={crowned || lol} style={{ fontSize: 15, lineHeight: '20px', padding: 10 }}
-              onClick={() => (mode === 'crown' ? room.act({ t: 'crown', pid: crowned ? null : e.pid }) : room.act({ t: 'lol', pid: e.pid }))}>
+            <button key={`${e.pid}-${e.k}`} className={`bx-fave ${crowned ? 'is-crowned' : ''} ${lol ? 'is-lol' : ''}`} aria-pressed={crowned || lol} style={{ fontSize: 15, lineHeight: '20px', padding: 10 }}
+              onClick={() => (mode === 'crown' ? room.act({ t: 'crown', pid: crowned ? null : e.pid, i: e.k }) : room.act({ t: 'lol', pid: e.pid }))}>
               {crowned && <span className="bx-fave__star">★ Fave</span>}{e.text}<small>Look #{e.i}{lol ? ' · +lol' : ''}</small>
             </button>
           );
