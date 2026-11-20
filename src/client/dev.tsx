@@ -3,8 +3,8 @@
 // eyeballing skins without running a whole game.
 import { useMemo } from 'react';
 import { apply, join, newGame, stepsFor, tick, TIMING } from '../shared/game';
-import { parseQuestions } from '../shared/questions';
-import type { ChaosKind } from '../shared/types';
+import { parseQuestions, SKINS } from '../shared/questions';
+import type { ChaosKind, SkinId } from '../shared/types';
 import { viewFor } from '../shared/views';
 import sample from '../../questions.example.json';
 import { PlayerPreview } from './player';
@@ -19,6 +19,8 @@ export function DevPreview() {
     const parsed = parseQuestions(sample);
     if (!parsed.ok) throw new Error(parsed.errors.join());
     let now = Date.now();
+    const skin = qs.get('skin'); // ?skin=insta re-skins question q for previewing
+    if (skin && skin in SKINS) parsed.questions[qn - 1].skin = skin as SkinId;
     const s = newGame({ pin: 'DEVV', secretHash: 'x', questions: parsed.questions, seed: 36, now });
     s.chaos.intensity = 'off';
     ['Priya', 'Marcus', 'Jo', 'Wei Ling', 'Dev'].forEach((n, i) => join(s, { id: `p${i}`, token: `t${i}`, name: n, avatar: i + 2, now }));

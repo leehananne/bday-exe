@@ -165,7 +165,7 @@ export function Card({ skin, n, title, children, style, className = '' }: {
       return (
         <article className={`bx-ig-post ${className}`} style={{ display: 'flex', flexDirection: 'column', ...style }}>
           <div className="bx-ig-head"><Avatar i={0} size="sm" />anne_lol_2011<small>2y</small></div>
-          <div style={{ padding: '10px 12px' }}>{children}</div>
+          <div className="app-ig-body">{children}</div>
         </article>
       );
     default:
@@ -185,7 +185,13 @@ export function QuestionText({ skin, prompt }: { skin: SkinId; prompt: string })
   if (skin === 'bsod') return <p style={{ fontSize: 26, lineHeight: '28px' }}>{prompt}</p>;
   if (skin === 'myspaze') return <p className="bx-pq__text" style={{ font: '700 22px/28px var(--font-comic)' }}>{prompt}</p>;
   if (skin === 'fakebook') return <>{prompt}</>;
-  if (skin === 'insta') return <p className="app-nomargin" style={{ font: '700 18px/24px var(--font-comic)' }}><b>anne_lol_2011</b> {prompt}</p>;
+  if (skin === 'insta') return (
+    <>
+      <div className="bx-ig-photo app-ig-photo" aria-hidden="true"><Avatar i={0} size="lg" /><span className="bx-ig-filter">Filter: Lo-Fi Regret</span></div>
+      <div className="bx-ig-actions"><span>♥ 15 likes</span><span style={{ marginLeft: 'auto', color: 'var(--window-muted)', fontWeight: 400 }}>#nofilter (lies)</span></div>
+      <p className="app-nomargin" style={{ font: '700 19px/25px var(--font-comic)', padding: '0 12px 10px' }}><b>anne_lol_2011</b> {prompt}</p>
+    </>
+  );
   return <p className="bx-pq__text" style={skin === 'bear' ? { fontSize: 22, lineHeight: '28px' } : undefined}>{prompt}</p>;
 }
 

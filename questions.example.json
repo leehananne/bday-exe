@@ -16,7 +16,7 @@
   },
   {
     "id": 2,
-    "skin": "igloo",
+    "skin": "insta",
     "type": "mc",
     "category": "Chilly Facts",
     "prompt": "Which drink does Anne order every. single. time?",
@@ -57,7 +57,7 @@
   },
   {
     "id": 5,
-    "skin": "monster",
+    "skin": "xp",
     "type": "mc",
     "category": "Snack Crimes",
     "prompt": "Which snack would Anne fight a monster for?",

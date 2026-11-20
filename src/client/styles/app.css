@@ -150,3 +150,9 @@ button.bx-key:focus-visible { outline: 3px solid var(--focus); outline-offset: 2
   background: var(--favourite); color: var(--on-favourite); border: 3px solid var(--frame);
   box-shadow: 0 6px 0 var(--frame); transform: rotate(-3deg);
 }
+
+/* Instagran: the question is a photo post (photo fills the card zone, caption underneath) */
+.app-ig-body { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+.app-ig-body > :not(.app-ig-photo):not(.bx-ig-actions):not(.app-nomargin) { padding: 10px 12px; }
+.app-ig-photo { aspect-ratio: auto !important; flex: 1; min-height: 96px; }
+.app-ig-photo .bx-avatar--lg { width: 72px; height: 72px; }
