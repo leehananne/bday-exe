@@ -8,6 +8,7 @@ export type ClientMsg =
   | { t: 'join'; name: string; avatar: number }
   | { t: 'ping'; c: number }
   | { t: 'sync' }
+  | { t: 'close' }
   | { t: 'act'; a: Action };
 
 export type ServerMsg =
@@ -19,6 +20,7 @@ export type ServerMsg =
   | { t: 'error'; msg: string; code?: 'room_taken' | 'no_room' | 'bad_questions' | 'join' | 'action' }
   | { t: 'nudge'; from: string }
   | { t: 'reacts'; items: { e: string; name: string; avatar: number }[] }
-  | { t: 'kicked' };
+  | { t: 'kicked' }
+  | { t: 'closed' };
 
 export const PIN_RE = /^[A-Z]{4}$/;

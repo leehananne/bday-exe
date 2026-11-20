@@ -76,6 +76,14 @@ npm run deploy
    Kahoot-style. Tap **Next ▶** to skip ahead or **⏸ Hold** to stop on a moment. The leaderboard waits for your **Start Q▶**
    unless you switch on *Autopilot next question* (☰ or the lobby), which starts it after 10s. ☰ has Calm mode, power-ups, kick and Reset game (for the rehearsal).
 
+## Closing a room
+
+**☰ → Close room** (or **Shut down party** on the podium) deletes the room's saved game, sends every phone to a
+"party's over" screen and frees the PIN, so you can create it again with the latest `questions.json`. A room keeps the
+questions it was created with, so close and recreate it after changing questions. Only the phone that created a room
+can close it (its secret link is saved there; `/host` shows a **Resume** card for it). A room nobody closes just sits
+idle and costs nothing.
+
 ## Testing on your own
 
 1. Open `/host` first and create the room. The player link (`/ANNE`) only works once the room exists. A player who opens it

@@ -15,6 +15,8 @@ export interface RoomState {
   needJoin: { exists: boolean; open: boolean; reason?: string } | null;
   error: { msg: string; code?: string; at: number } | null;
   kicked: boolean;
+  /** The host closed the room. */
+  closed: boolean;
 }
 
 type Listener = (m: ServerMsg) => void;
@@ -35,7 +37,7 @@ export const serverNow = () => Date.now() + offset;
 
 export class Room {
   ws: PartySocket;
-  state: RoomState = { status: 'connecting', view: null, welcome: null, needJoin: null, error: null, kicked: false };
+  state: RoomState = { status: 'connecting', view: null, welcome: null, needJoin: null, error: null, kicked: false, closed: false };
   private subs = new Set<() => void>();
   private listeners = new Set<Listener>();
   private pings = 0;
@@ -50,6 +52,7 @@ export class Room {
 
   private onVisible = () => {
     if (document.visibilityState === 'visible') {
+      if (this.closedByHost) return;
       if (this.ws.readyState !== WebSocket.OPEN) this.ws.reconnect();
       else this.raw({ t: 'sync' });
     }
@@ -93,6 +96,12 @@ export class Room {
         break;
       case 'error': this.set({ error: { msg: m.msg, code: m.code, at: Date.now() } }); break;
       case 'kicked': store.del(tokenKey(this.pin)); this.set({ kicked: true }); break;
+      case 'closed':
+        store.del(tokenKey(this.pin));
+        this.closedByHost = true;
+        this.set({ closed: true });
+        this.ws.close();
+        break;
     }
     for (const l of this.listeners) l(m);
   }
@@ -110,6 +119,9 @@ export class Room {
   }
   subscribe = (f: () => void) => { this.subs.add(f); return () => { this.subs.delete(f); }; };
   snapshot = () => this.state;
+  /** Host: close the room for good (frees the PIN). */
+  closeRoom() { this.raw({ t: 'close' }); }
+  closedByHost = false;
   close() { document.removeEventListener('visibilitychange', this.onVisible); this.ws.close(); }
 }
 
@@ -124,7 +136,7 @@ export function useRoom(pin: string | null, hello: Hello | null): [RoomState, Ro
     return () => r.close();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pin, hello && JSON.stringify(hello)]);
-  const empty: RoomState = { status: 'connecting', view: null, welcome: null, needJoin: null, error: null, kicked: false };
+  const empty: RoomState = { status: 'connecting', view: null, welcome: null, needJoin: null, error: null, kicked: false, closed: false };
   const state = useSyncExternalStore(room?.subscribe ?? noopSub, room?.snapshot ?? (() => empty));
   return [state, room];
 }

@@ -50,6 +50,7 @@ function CreateRoom({ onCreate }: { onCreate: (pin: string, questions: unknown, 
   const [errors, setErrors] = useState<string[]>([]);
   const [seed, setSeed] = useState('');
   const resumeSecret = last ? store.get(`bday:host:${last}`) : null;
+  const [justClosed] = useState(() => { const c = store.get('bday:host:closed'); store.del('bday:host:closed'); return c; });
   const go = (e: React.FormEvent) => {
     e.preventDefault();
     const P = pin.toUpperCase();
@@ -68,6 +69,7 @@ function CreateRoom({ onCreate }: { onCreate: (pin: string, questions: unknown, 
             <div className="bx-body app-row"><span className="phone-body">Room <b>{last}</b> on this phone</span><a className="bx-btn bx-btn--primary" href={`#${last}.${resumeSecret}`}>Resume ▶</a></div>
           </Window>
         )}
+        {justClosed && <Window title="Room closed"><div className="bx-body"><p className="phone-body app-nomargin">Room <b>{justClosed}</b> is closed and its PIN is free. Create it again below to start fresh with the latest questions.</p></div></Window>}
         <Window title="Create a room">
           <form className="bx-body bx-stack" onSubmit={go}>
             <label className="caption app-muted" htmlFor="hpin">Room PIN (4 letters, goes in the link)</label>
@@ -107,6 +109,13 @@ function HostApp({ pin, secret, create }: { pin: string; secret: string; create?
   useEffect(() => { if (!toast) return; const t = setTimeout(() => setToast(null), 3500); return () => clearTimeout(t); }, [toast]);
   const v = st.view;
   useWakeLock(!!v && v.phase !== 'LOBBY');
+  useEffect(() => {
+    if (!st.closed) return;
+    store.del(`bday:host:${pin}`);
+    if (store.get('bday:host:last') === pin) store.del('bday:host:last');
+    store.set('bday:host:closed', pin);
+    location.hash = '';
+  }, [st.closed]);
 
   if (st.error && (st.error.code === 'room_taken' || st.error.code === 'no_room' || st.error.code === 'bad_questions') && !v) {
     return (
@@ -160,6 +169,7 @@ function HostMenu({ v, room, close }: { v: View; room: Room; close: () => void }
             ))}
           </ul>
           {v.phase !== 'LOBBY' && <button className="bx-btn bx-btn--danger" onClick={() => confirm('Reset to the lobby? Scores and chips are wiped; players stay.') && room.act({ t: 'resetGame' })}>Reset game (rehearsal)</button>}
+          <button className="bx-btn bx-btn--danger" onClick={() => confirm(`Close room ${v.pin} for good? Everyone is sent home, the game is deleted, and the PIN is free to create again.`) && room.closeRoom()}>Close room {v.pin}…</button>
         </div>
       </Window>
     </div>
@@ -550,6 +560,7 @@ function PodiumCtl({ v, room }: { v: View; room: Room }) {
       <Window title="Setup — Installation complete" style={{ flex: 'none' }}><BoardTable v={v} /></Window>
       <Window title="Awards" style={{ flex: 'none' }}><div className="bx-body" style={{ display: 'grid', gap: 6 }}>{pod.awards.map((a) => <Pill key={a.id} kind="accent">{a.icon} {a.label}: {a.name} · {a.detail}</Pill>)}</div></Window>
       <button className="bx-btn" onClick={() => room.act({ t: 'back' })}>◀ Back to the last reveal</button>
+      <button className="bx-btn bx-btn--danger bx-btn--lg bx-btn--block" onClick={() => confirm(`Close room ${v.pin}? Everyone's phone shows "party's over" and the game is deleted.`) && room.closeRoom()}>Shut down party (close room)</button>
       <p className="caption app-nomargin" style={{ textAlign: 'center', color: 'var(--titlebar-ink)' }}>It is now safe to put your phone down.</p>
     </div>
   );

@@ -77,6 +77,15 @@ export class Room extends Server<Env> {
       return this.commit();
     }
     if (m.t === 'sync') return this.sendView(c, now);
+    if (m.t === 'close') {
+      // Host only: wipe the room (state, alarm) so the PIN is free again; every phone gets the "party's over" screen.
+      if (st.role !== 'host') return;
+      await this.ctx.storage.deleteAlarm();
+      await this.ctx.storage.deleteAll();
+      this.state = null;
+      for (const o of this.getConnections()) { this.send(o, { t: 'closed' }); try { o.close(1000, 'room closed'); } catch { /* */ } }
+      return;
+    }
     if (m.t === 'act') {
       if (st.role === 'pending') return;
       const actor = st.role === 'host' ? { role: 'host' as const } : { role: 'player' as const, pid: st.pid };

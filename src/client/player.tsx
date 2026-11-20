@@ -69,6 +69,7 @@ export function PlayerApp({ pin }: { pin: string }) {
     </>
   );
 
+  if (st.closed) return <Phone><div className="bx-phone__main app-center"><Dialog title="BDAY.EXE" body={<><p><b>The host has closed this party.</b></p><p>It is now safe to put your phone down.</p></>} /></div></Phone>;
   if (st.kicked) return <Phone><div className="bx-phone__main app-center"><Dialog title="BDAY.EXE" body={<><p><b>You have been removed from the party.</b></p><p>Contact your administrator (Anne).</p></>} /></div></Phone>;
   if (!room || (!v && !st.needJoin)) return <Boot status={st.status} error={st.error?.msg} />;
   if (st.needJoin) return <Join pin={pin} room={room} st={st} />;
