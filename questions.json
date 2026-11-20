@@ -92,7 +92,7 @@
     "id": 8,
     "skin": "fakebook",
     "type": "mc",
-    "category": "Family, time to prove ur luv",
+    "category": "family u better know this",
     "prompt": "What is Anne's sister's actual name?",
     "seconds": 20,
     "options": [
@@ -108,7 +108,7 @@
     "id": 9,
     "skin": "insta",
     "type": "typed",
-    "category": "Hi Adrian and Jialiang",
+    "category": "if u r not Adrian or Jia Liang, guess lor",
     "prompt": "Where did Anne go for her poly grad trip? Comment below 👇",
     "seconds": 30,
     "accept": [
@@ -125,13 +125,13 @@
     "id": 10,
     "skin": "bsod",
     "type": "mc",
-    "category": "FINAL BOSS · uni gang, wake up",
+    "category": "FINAL BOSS",
     "prompt": "What did Anne actually study at uni? (No checking LinkedIn!1!1!!!!!)",
     "seconds": 20,
     "options": [
       "Computer stuff (fixes your printer)",
       "UI/UX (draws buttons for a living)",
-      "Design Engineering",
+      "Design Engineering (designs engineers?)",
       "Engineering. Can fix your aircon?"
     ],
     "answer": 2,
