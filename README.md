@@ -74,7 +74,7 @@ npm run deploy
    auto-grouped for judging (✓ / ✗ / ★ +lol). For Host's Fave you crown one answer and give up to 3 +lol. For the brick-phone question you enter the
    real number. When the timer ends (or you tap Done after judging), the reveal **plays itself**: split → answer → points → leaderboard,
    Kahoot-style. Tap **Next ▶** to skip ahead or **⏸ Hold** to stop on a moment. The leaderboard waits for your **Start Q▶**
-   unless you switch on *Autopilot next question* (☰ or the lobby), which starts it after 12s. ☰ has Calm mode, power-ups, kick and Reset game (for the rehearsal).
+   unless you switch on *Autopilot next question* (☰ or the lobby), which starts it after 10s. ☰ has Calm mode, power-ups, kick and Reset game (for the rehearsal).
 
 ## Testing on your own
 

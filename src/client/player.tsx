@@ -1,5 +1,6 @@
 // Player app: join → lobby → (modifier → bet → answer → waiting → reveal → leaderboard) × 10 → podium.
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { TIMING } from '../shared/game';
 import { MOD_META } from '../shared/modifiers';
 import { LIMITS } from '../shared/questions';
 import type { ChaosEvent, ModifierId, SkinId } from '../shared/types';
@@ -695,7 +696,7 @@ function Board({ v }: { v: View }) {
         <Window title={`Loading Q${v.q + 1}…`} className="bx-anim-pop">
           <div className="bx-body bx-stack">
             <p className="phone-body app-nomargin">Installing <b>{SKINS[next].name}</b> skin…{left != null ? ` ${left}s` : ''}</p>
-            <Progress pct={left != null ? 100 - (left / 12) * 100 : 70} stripes />
+            <Progress pct={left != null ? 100 - (left / (TIMING.LEADERBOARD / 1000)) * 100 : 70} stripes />
             <p className="caption app-muted app-nomargin">Do not turn off your phone. Do not let {pickName(v, 'touch')} touch your phone.</p>
           </div>
         </Window>

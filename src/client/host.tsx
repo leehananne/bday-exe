@@ -485,7 +485,7 @@ function AutoToggles({ v, room }: { v: View; room: Room }) {
   return (
     <>
       <label className="bx-toggle-row"><input type="checkbox" checked={v.auto.reveal} onChange={(e) => room.act({ t: 'setFlags', autoReveal: e.target.checked })} /><span>Auto-play reveal<small>When time's up: split → answer → points → leaderboard, on timers</small></span></label>
-      <label className="bx-toggle-row"><input type="checkbox" checked={v.auto.next} onChange={(e) => room.act({ t: 'setFlags', autoNext: e.target.checked })} /><span>Autopilot next question<small>Leaderboard starts the next question after 12s</small></span></label>
+      <label className="bx-toggle-row"><input type="checkbox" checked={v.auto.next} onChange={(e) => room.act({ t: 'setFlags', autoNext: e.target.checked })} /><span>Autopilot next question<small>Leaderboard starts the next question after 10s</small></span></label>
     </>
   );
 }

@@ -11,7 +11,7 @@ import type {
 } from './types';
 
 // MODIFIER = the Spotlight reveal: slam-in 0.6s, hold to 3.3s, fly-up to 3.7s. The bet timer starts after it.
-export const TIMING = { MODIFIER: 3700, BET: 10000, GRACE: 300, POWER_CUTOFF: 5000, POPUP_DELAY: 1000, LEADERBOARD: 12000 };
+export const TIMING = { MODIFIER: 3700, BET: 10000, GRACE: 300, POWER_CUTOFF: 5000, POPUP_DELAY: 1000, LEADERBOARD: 10000 };
 export const DEFAULT_AUTO = { reveal: true, next: false };
 export const autoOf = (s: GameState) => s.auto ?? DEFAULT_AUTO;
 
