@@ -81,7 +81,7 @@ const fail = (error: string): ApplyResult => ({ ok: false, error, changed: false
 
 // ---------------------------------------------------------------- construction
 
-export const DEFAULT_CHAOS: ChaosConfig = { intensity: 'chaos', enabled: [...ALL_KINDS], mercy: true };
+export const DEFAULT_CHAOS: ChaosConfig = { intensity: 'chaos', enabled: [...ALL_KINDS], mercy: false };
 
 export function emptyRound(): Round {
   return { bets: {}, answers: {}, judging: { verdicts: {}, crowned: null, lols: [], real: null }, mystery: null, result: null, skipped: false, answerStart: null };
@@ -354,10 +354,8 @@ function processChaos(s: GameState, now: number) {
     if (!e.fired && e.at <= now) {
       // At most one card-zone overlay at a time: a scheduled event waits behind an active pop-up.
       const blocking = e.kind !== 'auntie_chope' && activeChaosFor(s, e.player);
-      if (blocking && blocking.until != null) {
-        const d = DURATION[e.kind] ?? 5000;
-        e.at = blocking.until + 150;
-        e.until = e.at + d;
+      if (blocking) {
+        e.at = now + 1000; // still closing the last one: try again in a second
         continue;
       }
       e.fired = true;
@@ -376,7 +374,7 @@ function processChaos(s: GameState, now: number) {
     if (p.q !== s.q) continue;
     if (now >= s.endsAt! - TIMING.POWER_CUTOFF) continue; // dropped
     if (now < (r.answerStart ?? now) + TIMING.POPUP_DELAY || activeChaosFor(s, p.to)) { keep.push(p); continue; }
-    s.chaosQueue.push({ id: `p_${s.q}_${p.from}`, kind: p.kind, player: p.to, q: s.q, at: now, until: now + 5000, fired: true, from: p.from });
+    s.chaosQueue.push({ id: `p_${s.q}_${p.from}`, kind: p.kind, player: p.to, q: s.q, at: now, until: null, fired: true, from: p.from });
   }
   s.popups = keep;
 }

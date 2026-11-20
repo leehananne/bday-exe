@@ -103,8 +103,9 @@ idle and costs nothing.
 | `node test/fit.mjs` | Nothing a player taps is cut off: every screen of both question sets at 5 phone sizes (500 screens) |
 | `node test/layout.mjs` | Deterministic: all 11 chaos kinds × 10 skins × answer/waiting × 360/390/430 px |
 
-**Chaos.** On *Chaos* intensity every player gets hit on 6–7 of Q2–Q9 (Mild: 3–4), a different random set per player,
-never the same pop-up twice (mercy rule: whoever is last is skipped that question). Every pop-up **bounces around the whole
+**Chaos.** On *Chaos* intensity every player gets hit on 7–8 of Q2–Q9 (Mild: 3–4), a different random set per player,
+never the same pop-up twice, landing 1.5–9s into the question. Pop-ups stay up until closed (or answers lock).
+The mercy rule (skip whoever is last) is off by default; switch it on in Setup. Every pop-up **bounces around the whole
 screen** as the top layer (the eyePad sweeps up and down); the boss email and the 12.3 sale dodge the first close and jump
 somewhere else. Pop-ups are tap-through except their ×, so answers underneath always work. Huat Ah!'s red packets keep
 raining until answers lock. The Auntie chope stays on its tile. Calm mode / reduced motion: pop-ups sit still.

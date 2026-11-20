@@ -119,8 +119,11 @@ export function ChaosOverlay({ ev, onClose, victim = 'your friend', sender }: {
           <p className="bx-4d__title">4D</p>
           <p className="bx-4d__type">ORDINARY</p>
           <div className="bx-4d__line"><span>A.</span><b>6767</b><span>BIG $67</span><span>SML $67</span></div>
+          <div className="bx-4d__line"><span>B.</span><b>6767</b><span>BIG $67</span><span>SML $67 QP</span></div>
           <p className="bx-4d__price">PRICE:$67.67</p>
-          <p className="bx-4d__fine">DRAW: SAT 06/07/67 · NOT A REAL TICKET · 6… 7…</p>
+          <div className="bx-4d__meta"><span>DRAW: SAT 06/07/67</span><span>0067/67</span><span>06/07/67 06:07pm</span><span>00676767-67</span></div>
+          <div className="bx-4d__bar" aria-hidden="true" />
+          <p className="bx-4d__fine">NOT A REAL TICKET · 6… 7…</p>
         </div>
       );
       break;

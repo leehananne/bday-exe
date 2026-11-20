@@ -86,7 +86,7 @@ function players(n: number): Player[] {
 }
 
 describe('scheduleChaos acceptance (PRD §8a)', () => {
-  it('chaos intensity: every player gets chaos on 6–7 questions, a different random set each, never the same kind twice', () => {
+  it('chaos intensity: every player gets chaos on 7–8 questions, a different random set each, never the same kind twice', () => {
     for (let seed = 1; seed <= 20; seed++) {
       const room = { chaos: { intensity: 'chaos' as const, enabled: [...ALL_KINDS], mercy: false }, seed, questions: QS };
       const ps = players(15);
@@ -100,15 +100,16 @@ describe('scheduleChaos acceptance (PRD §8a)', () => {
           p.chaosCount++;
           p.chaosSeen.push(e.kind);
           (hitOn[p.id] ??= []).push(q);
-          expect(e.at).toBeGreaterThanOrEqual(2500);
-          expect(e.at).toBeLessThanOrEqual(QS[q - 1].seconds * 1000 - 5000);
+          expect(e.at).toBeGreaterThanOrEqual(1500); // lands early…
+          expect(e.at).toBeLessThanOrEqual(Math.min(9000, QS[q - 1].seconds * 1000 - 4000));
+          expect(e.until).toBeNull(); // …and stays until the player closes it
           if (e.kind === 'toto') expect(e.data?.numbers).toEqual([6, 7, 16, 17, 26, 27]);
           if (e.kind === 'auntie_chope') expect(QS[q - 1].type).toBe('mc');
         }
       }
-      for (const p of ps) expect(p.chaosCount).toBeGreaterThanOrEqual(6), expect(p.chaosCount).toBeLessThanOrEqual(7);
+      for (const p of ps) expect(p.chaosCount).toBeGreaterThanOrEqual(7), expect(p.chaosCount).toBeLessThanOrEqual(8);
       // randomised per player: not everyone is hit on the same questions
-      expect(new Set(Object.values(hitOn).map((qs) => qs.join(','))).size).toBeGreaterThan(5);
+      expect(new Set(Object.values(hitOn).map((qs) => qs.join(','))).size).toBeGreaterThan(3);
     }
   });
   it('mild intensity: 3–4 questions per player', () => {

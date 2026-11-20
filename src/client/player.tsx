@@ -211,7 +211,6 @@ function Hype({ text, v }: { text: string; v: View }) {
   const banner = v.phase === 'ANSWER' && v.question && left > v.question.seconds - 3;
   return (
     <div className="app-hype-layer" aria-hidden={!banner}>
-      <Confetti />
       {banner && <div className="app-hype bx-anim-pop" role="status">{text}</div>}
     </div>
   );

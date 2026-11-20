@@ -12,13 +12,14 @@ export const WEIGHT: Record<ChaosKind, number> = {
   auntie_forward: 2, auntie_chope: 1, boss_email: 2, bday_sale: 2, melvin: 1,
 };
 
+/** Pop-ups stay up until the player closes them (or answers lock): no timeout. */
 export const DURATION: Record<ChaosKind, number | null> = {
-  scam_eyepad: 6000, scam_virus: 6000, scam_smileys: 6000, toto: 6000, fourd: 6000, huat: 5000,
-  auntie_forward: 6000, auntie_chope: null, boss_email: 7000, bday_sale: 7000, melvin: 6000,
+  scam_eyepad: null, scam_virus: null, scam_smileys: null, toto: null, fourd: null, huat: null,
+  auntie_forward: null, auntie_chope: null, boss_email: null, bday_sale: null, melvin: null,
 };
 
 /** How many questions each player gets hit on, out of Q2…Q(N−1). Each player gets their own random set. */
-export const PER_PLAYER: Record<Intensity, [number, number]> = { off: [0, 0], mild: [3, 4], chaos: [6, 7] };
+export const PER_PLAYER: Record<Intensity, [number, number]> = { off: [0, 0], mild: [3, 4], chaos: [7, 8] };
 
 /** The questions this player's chaos lands on: a per-player random pick, fixed by the room seed (reconnect-safe). */
 export function chaosQuestions(seed: number, pid: string, total: number, intensity: Intensity): number[] {
@@ -71,8 +72,9 @@ export function scheduleChaos(
     const kinds = cfg.enabled.filter((k) => !p.chaosSeen.includes(k) && fits(k, question));
     if (!kinds.length) continue;
     const kind = weightedPick(rng, kinds, (k) => WEIGHT[k]);
-    const lo = answerStart + 2500, hi = endsAt - 5000;
-    if (hi - lo < 1500) continue;
+    // Land early (1.5–9s in) so it still fires when the host ends a question quickly.
+    const lo = answerStart + 1500, hi = Math.min(answerStart + 9000, endsAt - 4000);
+    if (hi - lo < 1000) continue;
     const at = Math.round(lo + rng() * (hi - lo));
     const d = DURATION[kind];
     out.push({
