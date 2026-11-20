@@ -44,7 +44,7 @@ Without one, it lives at `https://bday-exe.<your-subdomain>.workers.dev`.
 
 ```bash
 npm install
-npm test            # 41 engine unit tests (every outcome × modifier, C1–C7, chaos acceptance, full games)
+npm test            # 49 engine unit tests (every outcome × modifier, C1–C7, chaos acceptance, full games)
 npm run dev         # wrangler dev (8787) + vite (5173); open http://localhost:5173/host
 ```
 
@@ -75,6 +75,19 @@ npm run deploy
    real number. When the timer ends (or you tap Done after judging), the reveal **plays itself**: split → answer → points → leaderboard,
    Kahoot-style. Tap **Next ▶** to skip ahead or **⏸ Hold** to stop on a moment. The leaderboard waits for your **Start Q▶**
    unless you switch on *Autopilot next question* (☰ or the lobby), which starts it after 10s. ☰ has Calm mode, power-ups, kick and Reset game (for the rehearsal).
+
+## Results (end of game)
+
+After Q10 a Spotlight crowns the winner ("AND THE WINNER IS…", ties share it), then every phone lands on the
+Spreadsheep results from the design system (PRD §8b): a compact podium plus `Final_Scores.xls`, a diverging bar chart
+of every player's final score around zero (debt bars go left in plum; your own row has the dashed marching-ants
+outline and a YOU tag; tap a bar for score · right · rank). **Awards ▸** shows the awards, **Full ranking ▸** shows
+`Final_Ranking.xls` (gold/silver/bronze rows, debts in brackets, tap a name for a cell note with worst bet, chaos received
+and awards), then **Your report ▸**. Ties on score share a rank (sorted by score, then questions right, then name).
+The host sees the same screens plus **◀ Last reveal** and **Shut down party**. The Q1–Q10 and Chaos log tabs are
+shown but inert, as the PRD marks them as a stretch goal.
+
+Preview with bots: `/dev/preview?set=party&phase=PODIUM&players=15&me=p9` (`players` 5–20, `as=host` for the host view).
 
 ## Multiple answers
 

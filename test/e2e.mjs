@@ -144,9 +144,14 @@ for (let q = 1; q <= 10; q++) {
   console.log(`Q${q} done`);
 }
 await waitTitle(/Podium/);
-await sleep(500);
+await sleep(4500); // crown Spotlight, then the Spreadsheep results
 await players[0].screenshot({ path: `${SHOTS}/podium.png` });
-await players[0].click('text=Your report');
+await players[0].waitForSelector('.bx-hbar');
+await players[0].click('button:has-text("Awards ▸")');
+await players[0].click('button:has-text("Full ranking ▸")');
+await players[0].waitForSelector('.bx-sheet');
+await players[0].click('button:has-text("Your report ▸")');
+await players[0].waitForSelector('text=Shut down party');
 await players[0].screenshot({ path: `${SHOTS}/report.png` });
 await host.screenshot({ path: `${SHOTS}/host-podium.png` });
 

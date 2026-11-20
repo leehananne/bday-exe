@@ -540,3 +540,96 @@ body > .bx-desktop { min-height: 100vh; }
   .bx-spotlight__dim, .bx-spotlight__pool, .bx-spotlight__stage, .bx-spotlight__beam, .bx-spotlight .bx-sparkle { animation: none !important; }
 }
 .bx-calm .bx-spotlight__beam, .bx-calm .bx-spotlight .bx-sparkle { animation: none !important; }
+
+/* ================= Results: Spreadsheep 2003 (end-of-game charts and ranking) ================= */
+.bx-xl { display: flex; flex-direction: column; min-height: 0; background: var(--xl-sheet); color: var(--xl-ink); border: 3px solid var(--frame); border-radius: var(--radius-window) var(--radius-window) 0 0; box-shadow: var(--shadow-window); overflow: hidden; font-family: var(--font-ui); }
+.bx-xl__tools { display: flex; align-items: center; gap: 2px; padding: 2px var(--space-2); background: var(--xl-head); border-bottom: 1px solid var(--xl-grid); }
+.bx-xl__tool { display: grid; place-items: center; min-width: 24px; height: 24px; padding: 0 4px; font: 700 12px/1 var(--font-ui); color: var(--xl-ink); border: 1px solid transparent; border-radius: 2px; }
+.bx-xl__tool.is-on { border-color: var(--xl-grid); background: var(--xl-sheet); }
+.bx-xl__fx { display: grid; grid-template-columns: 44px 22px 1fr; align-items: center; gap: 4px; padding: 2px var(--space-2); background: var(--xl-head); border-bottom: 1px solid var(--xl-grid); font: 12px/18px var(--font-ui); }
+.bx-xl__fx span { padding: 0 4px; background: var(--xl-sheet); border: 1px solid var(--xl-grid); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bx-xl__fx i { font-style: italic; font-weight: 700; text-align: center; }
+.bx-xl__tabs { display: flex; gap: 0; padding: 0 var(--space-2); background: var(--xl-head); border-top: 1px solid var(--xl-grid); font: 12px/22px var(--font-ui); overflow: hidden; }
+.bx-xl__tabs span { padding: 0 10px; border: 1px solid var(--xl-grid); border-top: 0; margin-right: -1px; white-space: nowrap; }
+.bx-xl__tabs span.is-on { background: var(--xl-sheet); font-weight: 700; }
+
+/* Chart object */
+.bx-xl-chart { position: relative; margin: var(--space-2); padding: var(--space-2) var(--space-2) var(--space-1); background: var(--xl-sheet); border: 1px solid var(--xl-ink); min-height: 0; display: flex; flex-direction: column; }
+.bx-xl-chart__title { margin: 0 0 var(--space-1); text-align: center; font: 700 14px/18px var(--font-ui); }
+.bx-xl-chart__legend { display: flex; justify-content: center; gap: var(--space-3); margin-bottom: var(--space-1); font: 11px/14px var(--font-ui); }
+.bx-xl-chart__legend i { display: inline-block; width: 10px; height: 10px; margin-right: 4px; vertical-align: -1px; }
+.bx-xl-chart__scroll { position: relative; flex: 1; min-height: 0; overflow-y: auto; }
+
+/* Diverging horizontal bars: label | plot | value. Plot uses inline --z (zero position, %). */
+.bx-hbars { position: relative; --label: 112px; --val: 50px; }
+.bx-hbars__grid { position: absolute; top: 0; bottom: 0; left: var(--label); right: var(--val); pointer-events: none; }
+.bx-hbars__grid i { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--xl-grid); }
+.bx-hbars__grid i.zero { width: 2px; margin-left: -1px; background: var(--xl-ink); }
+.bx-hbar { position: relative; display: grid; grid-template-columns: var(--label) 1fr var(--val); align-items: center; height: 20px; font: 12px/14px var(--font-ui); }
+.bx-hbar__who { display: flex; align-items: center; gap: 4px; min-width: 0; padding-right: 4px; }
+.bx-hbar__who b { flex: none; width: 18px; text-align: right; font: 700 11px/1 var(--font-pixel); }
+.bx-hbar__who span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bx-hbar__who .bx-avatar { width: 16px; height: 16px; border-width: 1px; }
+.bx-hbar__plot { position: relative; height: 14px; }
+.bx-hbar__bar { position: absolute; top: 0; bottom: 0; background: var(--xl-pos); border-radius: 0 3px 3px 0; }
+.bx-hbar__bar.is-neg { background: var(--xl-neg); border-radius: 3px 0 0 3px; }
+.bx-hbar__val { text-align: right; font: 700 11px/14px var(--font-ui); font-variant-numeric: tabular-nums; }
+.bx-hbar__val.is-neg { color: var(--xl-neg); }
+.bx-hbar.is-top .bx-hbar__who span:last-child { font-weight: 700; }
+.bx-hbar--tight { height: 15px; font-size: 11px; }
+.bx-hbar--tight .bx-hbar__plot { height: 10px; }
+.bx-hbar--tight .bx-avatar { width: 12px; height: 12px; }
+.bx-hbars__axis { display: grid; grid-template-columns: var(--label) 1fr var(--val); font: 10px/14px var(--font-ui); color: var(--xl-ink); }
+.bx-hbars__axis div { position: relative; height: 14px; }
+.bx-hbars__axis span { position: absolute; transform: translateX(-50%); white-space: nowrap; }
+
+/* "You": Excel's marching-ants copy selection around your row */
+.bx-ants { position: relative; }
+.bx-ants::after { content: ""; position: absolute; inset: -1px -2px; pointer-events: none;
+  background: linear-gradient(90deg, var(--xl-ink) 50%, transparent 50%) 0 0 / 8px 2px repeat-x, linear-gradient(90deg, var(--xl-ink) 50%, transparent 50%) 0 100% / 8px 2px repeat-x,
+              linear-gradient(0deg, var(--xl-ink) 50%, transparent 50%) 0 0 / 2px 8px repeat-y, linear-gradient(0deg, var(--xl-ink) 50%, transparent 50%) 100% 0 / 2px 8px repeat-y;
+  animation: bx-ants .5s linear infinite; }
+@keyframes bx-ants { to { background-position: 8px 0, -8px 100%, 0 -8px, 100% 8px; } }
+.bx-you-tag { display: inline-block; margin-left: 4px; padding: 0 4px; font: 700 9px/13px var(--font-ui); background: var(--xl-ink); color: var(--xl-sheet); border-radius: 2px; vertical-align: 1px; }
+.bx-debt-tag { display: inline-block; padding: 0 4px; font: 700 9px/13px var(--font-ui); background: var(--xl-neg); color: var(--on-xl-neg); border-radius: 2px; }
+
+/* Chart tooltip (tap a bar) */
+.bx-xl-tip { position: absolute; z-index: 2; padding: var(--space-1) var(--space-2); background: var(--sale-yellow); color: var(--xl-ink); border: 1px solid var(--xl-ink); box-shadow: 2px 2px 0 var(--xl-ink); font: 12px/16px var(--font-ui); white-space: nowrap; }
+
+/* Compact podium: block heights are fixed by RANK, never by score (scores can be negative) */
+.bx-podium-sm { display: grid; grid-template-columns: 1fr 1fr 1fr; align-items: end; gap: var(--space-2); }
+.bx-podium-sm > div { display: grid; justify-items: center; gap: 2px; text-align: center; font: 12px/15px var(--font-ui); min-width: 0; }
+.bx-podium-sm b { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; }
+.bx-podium-sm .blk { width: 100%; display: grid; place-items: center; border: 2px solid var(--frame); border-bottom: 0; font: 700 22px/1 var(--font-pixel); color: var(--on-medal); }
+.bx-podium-sm .p1 .blk { height: 56px; background: var(--favourite); }
+.bx-podium-sm .p2 .blk { height: 40px; background: var(--medal-silver); }
+.bx-podium-sm .p3 .blk { height: 28px; background: var(--medal-bronze); }
+
+/* Ranking sheet */
+.bx-sheet { width: 100%; border-collapse: collapse; table-layout: fixed; font: 12px/16px var(--font-ui); color: var(--xl-ink); background: var(--xl-sheet); }
+.bx-sheet th { background: var(--xl-head); font-weight: 400; border: 1px solid var(--xl-grid); text-align: center; height: 18px; }
+.bx-sheet td { border: 1px solid var(--xl-grid); padding: 0 4px; height: 24px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bx-sheet td.num { text-align: right; font-variant-numeric: tabular-nums; }
+.bx-sheet td.neg { color: var(--xl-neg); }
+.bx-sheet th.rowh { width: 22px; }
+.bx-sheet tr.r1 td:not(.rowh) { background: var(--favourite); color: var(--on-medal); }
+.bx-sheet tr.r2 td:not(.rowh) { background: var(--medal-silver); color: var(--on-medal); }
+.bx-sheet tr.r3 td:not(.rowh) { background: var(--medal-bronze); color: var(--on-medal); }
+.bx-sheet tr.hdr td { background: var(--xl-head); font-weight: 700; }
+.bx-sheet .who { display: flex; align-items: center; gap: 4px; }
+.bx-sheet .who .bx-avatar { width: 16px; height: 16px; border-width: 1px; }
+.bx-sheet td.has-note { position: relative; }
+.bx-sheet td.has-note::after { content: ""; position: absolute; top: 0; right: 0; border: 4px solid transparent; border-top-color: var(--wrong); border-right-color: var(--wrong); }
+.bx-xl-note { position: absolute; z-index: 3; width: 210px; padding: var(--space-2) var(--space-3); background: var(--sale-yellow); color: var(--xl-ink); border: 1px solid var(--xl-ink); box-shadow: 3px 3px 0 var(--xl-ink); font: 12px/17px var(--font-ui); }
+.bx-xl-note b { display: block; font-size: 13px; }
+.bx-xl-note::before { content: ""; position: absolute; left: -22px; top: 10px; width: 22px; height: 1px; background: var(--xl-ink); }
+
+/* Alternatives */
+.bx-tier { border: 2px solid var(--frame); background: var(--window); }
+.bx-tier > h4 { margin: 0; padding: var(--space-1) var(--space-3); font: 700 13px/18px var(--font-ui); background: var(--titlebar); color: var(--titlebar-ink); display: flex; justify-content: space-between; }
+.bx-tier--debt > h4 { background: var(--xl-neg); color: var(--on-xl-neg); }
+.bx-tier__chips { display: flex; flex-wrap: wrap; gap: 4px; padding: var(--space-2); }
+.bx-tier__chip { display: inline-flex; align-items: center; gap: 4px; padding: 2px 6px 2px 2px; font: 12px/16px var(--font-ui); background: var(--button); color: var(--button-ink); border: 1px solid var(--button-border); border-radius: var(--radius-pill); }
+.bx-tier__chip .bx-avatar { width: 18px; height: 18px; border-width: 1px; border-radius: 50%; }
+.bx-tier__chip.is-me { background: var(--highlight); color: var(--on-highlight); }
+@media (prefers-reduced-motion: reduce) { .bx-ants::after { animation: none; } }

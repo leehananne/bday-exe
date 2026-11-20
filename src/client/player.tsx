@@ -7,6 +7,7 @@ import type { ChaosEvent, ModifierId, SkinId } from '../shared/types';
 import type { View } from '../shared/views';
 import { createPortal } from 'react-dom';
 import { ChaosOverlay, usePhoneHost } from './chaos';
+import { AwardsScreen, CrownSpotlight, RankingScreen, ResultsScreen, type ResultsPage } from './results';
 import {
   AnswerTile, Avatar, AVATAR_NAMES, Chips, Confetti, ErrorIcon, fmt, Heat, Hourglass, KEYS, ModBadge, Pill, Progress,
   ReactionBar, ReactStage, Rain, signed, Spotlight, StartLogo, Timer, TimerAnnouncer, useShake, Window, type Float, type Key,
@@ -735,14 +736,15 @@ function Board({ v }: { v: View }) {
 // ---------------------------------------------------------------- podium
 
 function Podium({ v }: { v: View }) {
-  const [page, setPage] = useState<'podium' | 'report' | 'off'>('podium');
-  const pod = v.podium!;
+  // PRD §8b sequence: crown Spotlight → Results → Awards → Ranking → personal report → shut down
+  const [page, setPage] = useState<ResultsPage | 'off'>('results');
   const me = v.me!;
   const rep = me.report;
-  const [second, first, third] = [pod.top[1], pod.top[0], pod.top[2]];
   if (page === 'off') {
     return <div className="bx-phone__main app-center" style={{ background: 'var(--qr-ink)' }}><p style={{ color: 'var(--favourite)', font: '700 22px/30px var(--font-ui)', textAlign: 'center' }}>It is now safe to put your phone down.</p></div>;
   }
+  if (page === 'awards') return <AwardsScreen v={v} onBack={() => setPage('results')} onNext={() => setPage('ranking')} />;
+  if (page === 'ranking') return <RankingScreen v={v} meId={me.id} onChart={() => setPage('results')} next={() => setPage(rep ? 'report' : 'off')} nextLabel={rep ? 'Your report ▸' : 'Shut down party'} />;
   if (page === 'report' && rep) {
     return (
       <div className="bx-phone__main app-center">
@@ -753,7 +755,7 @@ function Podium({ v }: { v: View }) {
             <p className="phone-body app-nomargin">{rep.right}/{rep.played} correct{rep.best ? ` · best bet: ${rep.best}` : ''}{rep.worst ? ` · worst: ${rep.worst}` : ''}</p>
             <Pill kind="accent">👉 Chaos Agent: {rep.agent}</Pill>
             {rep.scammedMs > 0 && <Pill>📢 {(rep.scammedMs / 1000).toFixed(1)}s staring at pop-ups</Pill>}
-            <button className="bx-btn bx-btn--block" onClick={() => setPage('podium')}>◀ Back to podium</button>
+            <button className="bx-btn bx-btn--block" onClick={() => setPage('ranking')}>◂ Full ranking</button>
             <button className="bx-btn bx-btn--primary bx-btn--lg bx-btn--block" onClick={() => setPage('off')}>Shut down party</button>
             <p className="caption app-muted app-nomargin">It is now safe to put your phone down.</p>
           </div>
@@ -761,28 +763,10 @@ function Podium({ v }: { v: View }) {
       </div>
     );
   }
-  const step = (row: typeof first, h: number, bg: string, ink: string, place: number, bounce = false) => row && (
-    <div className="bx-podium__step"><Avatar i={row.avatar} className={bounce ? 'bx-anim-bounce' : ''} /><b className="caption" style={{ textAlign: 'center' }}>{row.name}<br />{fmt(row.score)}</b><div className="bx-podium__block" style={{ height: h, background: `var(--${bg})`, color: `var(--${ink})` }}>{place}</div></div>
-  );
   return (
     <>
-      <Confetti />
-      <div className="bx-phone__main">
-        <Window title="Setup — Installation complete" style={{ flex: 1 }}>
-          <div className="bx-body" style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 14 }}>
-            <p className="phone-title app-nomargin" style={{ textAlign: 'center' }}>{pod.age ?? 'Party complete.'} Winners:</p>
-            <div className="bx-podium" style={{ flex: 1 }}>
-              {step(second, 80, 'button', 'button-ink', 2)}
-              {step(first, 120, 'favourite', 'on-favourite', 1, true)}
-              {step(third, 60, 'bevel-dark', 'window-ink', 3)}
-            </div>
-            <div style={{ display: 'grid', gap: 6 }}>
-              {pod.awards.map((a) => <Pill key={a.id} kind={a.id === 'wrong' ? 'wrong' : a.id === 'fave' ? 'fave' : 'accent'}>{a.icon} {a.label}: {a.name}</Pill>)}
-            </div>
-            {rep && <button className="bx-btn bx-btn--primary bx-btn--lg bx-btn--block" onClick={() => setPage('report')}>Your report →</button>}
-          </div>
-        </Window>
-      </div>
+      <ResultsScreen v={v} meId={me.id} onAwards={() => setPage('awards')} onRanking={() => setPage('ranking')} />
+      <CrownSpotlight v={v} />
     </>
   );
 }

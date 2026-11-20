@@ -13,6 +13,7 @@ import { ChaosOverlay } from './chaos';
 import { AnswerTile, Avatar, fmt, Heat, KEYS, ModBadge, Pill, QR, Shape, signed, Timer, Window, type Key } from './ds';
 import { secondsLeft, store, useNow, useRoom, useWakeLock, type Room } from './net';
 import { BoardTable } from './player';
+import { AwardsScreen, RankingScreen, ResultsScreen } from './results';
 import { Phone } from './skins';
 
 const rand = (n: number) => [...crypto.getRandomValues(new Uint8Array(n))].map((b) => b.toString(36).padStart(2, '0')).join('').slice(0, n);
@@ -554,14 +555,18 @@ function BoardCtl({ v, room }: { v: View; room: Room }) {
 }
 
 function PodiumCtl({ v, room }: { v: View; room: Room }) {
-  const pod = v.podium!;
+  // Host sees the same results as the phones (no YOU row), then can go back or close the room.
+  const [page, setPage] = useState<'results' | 'awards' | 'ranking'>('results');
+  const shutDown = () => confirm(`Close room ${v.pin}? Everyone's phone shows "party's over" and the game is deleted.`) && room.closeRoom();
   return (
-    <div className="bx-phone__main app-scroll">
-      <Window title="Setup — Installation complete" style={{ flex: 'none' }}><BoardTable v={v} /></Window>
-      <Window title="Awards" style={{ flex: 'none' }}><div className="bx-body" style={{ display: 'grid', gap: 6 }}>{pod.awards.map((a) => <Pill key={a.id} kind="accent">{a.icon} {a.label}: {a.name} · {a.detail}</Pill>)}</div></Window>
-      <button className="bx-btn" onClick={() => room.act({ t: 'back' })}>◀ Back to the last reveal</button>
-      <button className="bx-btn bx-btn--danger bx-btn--lg bx-btn--block" onClick={() => confirm(`Close room ${v.pin}? Everyone's phone shows "party's over" and the game is deleted.`) && room.closeRoom()}>Shut down party (close room)</button>
-      <p className="caption app-nomargin" style={{ textAlign: 'center', color: 'var(--titlebar-ink)' }}>It is now safe to put your phone down.</p>
-    </div>
+    <>
+      {page === 'results' && <ResultsScreen v={v} onAwards={() => setPage('awards')} onRanking={() => setPage('ranking')} />}
+      {page === 'awards' && <AwardsScreen v={v} onBack={() => setPage('results')} onNext={() => setPage('ranking')} />}
+      {page === 'ranking' && <RankingScreen v={v} onChart={() => setPage('results')} next={shutDown} nextLabel="Shut down party" />}
+      <div className="app-row" style={{ flex: 'none', padding: '0 10px 10px' }}>
+        <button className="bx-btn" onClick={() => room.act({ t: 'back' })}>◀ Last reveal</button>
+        <button className="bx-btn bx-btn--danger" onClick={shutDown}>Shut down party</button>
+      </div>
+    </>
   );
 }

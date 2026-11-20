@@ -2,7 +2,7 @@
 // state (no server), with an optional chaos event forced on. Used by the layering test and for
 // eyeballing skins without running a whole game.
 import { useMemo } from 'react';
-import { apply, join, newGame, stepsFor, tick, TIMING } from '../shared/game';
+import { apply, chipsLeft, join, newGame, stepsFor, tick, TIMING } from '../shared/game';
 import { parseQuestions, SKINS } from '../shared/questions';
 import type { ChaosKind, SkinId } from '../shared/types';
 import { viewFor } from '../shared/views';
@@ -24,8 +24,37 @@ export function DevPreview() {
     if (skin && skin in SKINS) parsed.questions[qn - 1].skin = skin as SkinId;
     const s = newGame({ pin: 'DEVV', secretHash: 'x', questions: parsed.questions, seed: 36, now });
     s.chaos.intensity = 'off';
-    ['Priya', 'Marcus', 'Jo', 'Wei Ling', 'Dev'].forEach((n, i) => join(s, { id: `p${i}`, token: `t${i}`, name: n, avatar: i + 2, now }));
+    const NAMES = ['Priya', 'Marcus', 'Jo', 'Wei Ling', 'Dev', 'Hana', 'Bea', 'Sam', 'Ollie', 'Kai', 'Gabe', 'Ines', 'Jun', 'Lara', 'Moe', 'Nora', 'Omar', 'Pia', 'Quin', 'Rae'];
+    const nPlayers = Math.min(20, Math.max(5, Number(qs.get('players') ?? 5)));
+    NAMES.slice(0, nPlayers).forEach((n, i) => join(s, { id: `p${i}`, token: `t${i}`, name: n, avatar: (i + 2) % 8, now }));
     apply(s, { role: 'host' }, { t: 'start' }, now);
+    if (phase === 'PODIUM') {
+      // ?phase=PODIUM: play the whole game with bots that bet and answer differently, for the results screens
+      s.plan = ['normal', 'double', 'normal', 'risky', 'double', 'normal', 'trouble', 'normal', 'double', 'trouble'];
+      for (let q = 1; q <= s.questions.length; q++) {
+        now += TIMING.MODIFIER; tick(s, now);
+        for (let i = 0; i < nPlayers; i++) { const left = chipsLeft(s, `p${i}`); apply(s, { role: 'player', pid: `p${i}` }, { t: 'bet', chip: left[(i * 7 + q * 3) % left.length] }, now); }
+        now += TIMING.BET + TIMING.GRACE + 1; tick(s, now);
+        const question = s.questions[q - 1];
+        for (let i = 0; i < nPlayers; i++) {
+          const pid = `p${i}`, skill = (i * 37 + q * 11) % 10 < 7 - Math.floor(i / 3);
+          const v = question.type === 'mc' ? (skill ? question.answer! : (question.answer! + 1 + i) % (question.options?.length ?? 2))
+            : question.type === 'typed' ? (skill ? question.accept![0] : 'no idea')
+            : question.type === 'number' ? (skill ? 40 + i : 900 + i)
+            : question.type === 'crowd' ? 'p1' : `look ${i}`;
+          apply(s, { role: 'player', pid }, { t: 'answer', v }, now);
+        }
+        apply(s, { role: 'host' }, { t: 'endNow' }, now); tick(s, now);
+        if (s.phase === 'JUDGE') {
+          if (question.type === 'number') apply(s, { role: 'host' }, { t: 'setReal', value: 42 }, now);
+          if (question.type === 'fave') { apply(s, { role: 'host' }, { t: 'crown', pid: 'p2', i: 0 }, now); apply(s, { role: 'host' }, { t: 'lol', pid: 'p0' }, now); }
+          apply(s, { role: 'host' }, { t: 'finishJudging' }, now);
+        }
+        while (s.phase === 'REVEAL') apply(s, { role: 'host' }, { t: 'revealNext' }, now);
+        if (s.phase === 'LEADERBOARD') apply(s, { role: 'host' }, { t: 'next' }, now);
+      }
+      return viewFor(s, qs.get('as') === 'host' ? { role: 'host' } : { role: 'player', pid: qs.get('me') ?? 'p4' }, now);
+    }
     // fast-forward to question qn
     for (let q = 1; ; q++) {
       if (q === qn && phase === 'MODIFIER') break; // ?phase=MODIFIER: the Spotlight reveal

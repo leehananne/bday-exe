@@ -216,3 +216,9 @@ button.bx-key:focus-visible { outline: 3px solid var(--focus); outline-offset: 2
 .bx-ig-comments.app-sent { margin: 0; padding: 6px 10px; background: var(--window); border: 1px solid var(--bevel-dark); }
 .app-sent__x { flex: none; width: 28px; height: 28px; border: 0; border-radius: 50%; background: transparent; color: inherit; font: 700 14px/1 var(--font-ui); cursor: pointer; }
 .app-sent__x:focus-visible { outline: 3px solid var(--focus); outline-offset: 1px; }
+
+/* Results (Spreadsheep): numbers in the pixel spots use Press Start 2P at sizes that fit */
+.bx-hbar__who b { font-family: var(--font-num); font-size: 8px; font-weight: 400; }
+.bx-podium-sm .blk { font-family: var(--font-num); font-size: 18px; font-weight: 400; }
+.bx-podium-sm > div > span:not(.bx-avatar) { font-variant-numeric: tabular-nums; }
+.bx-xl__tabs span[role="button"] { cursor: pointer; }

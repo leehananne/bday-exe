@@ -5,7 +5,7 @@ A real-time, **mobile-first** birthday trivia game for ~15 friends in one room. 
 | | |
 |---|---|
 | Owner | Anne (host, designer, builder) |
-| Status | Draft v3: mobile-first, two UIs, round modifiers, chaos events. Ready to code from |
+| Status | Draft v4: mobile-first, two UIs, round modifiers, chaos events, results page decided. Ready to code from |
 | Players | 15 expected, design for 30 |
 | Session | One party night, ~35–45 minutes of play |
 | Surfaces | **Player app** (friends' phones) and **Host app** (Anne's phone). Both are mobile web; no TV is required. |
@@ -217,7 +217,7 @@ Skins, types and modifiers can be re-paired in `questions.json` and HostSetup.
 5. All five question types (§6), including the host's **Judge**, **Pick your fave** and **Enter number** screens.
 6. **Modifier planner** (HostSetup): generate from seed, show the plan with validation, lock/edit/re-roll, save. Spotlight modifier reveal at the start of every bet phase (PlayerModifier), then stakes on each chip.
 7. Host-paced reveal: (mystery rule) → split → answer → points → leaderboard. Each player sees their own result (right/wrong, delta, new rank) in the skin.
-8. The final question uses the FINAL modifier; podium on every phone with joke awards (Most Wrong, Chaos Agent, Most Scammed, Anne's Fave Human), then a personal report.
+8. The final question uses the FINAL modifier. Then **Results** on every phone: a compact podium (block heights fixed by rank, never by score) above a diverging bar chart of every player around a zero axis, with the viewer highlighted (PlayerResults). Then the full **Ranking** spreadsheet with tap-for-stats (PlayerRanking), the joke awards (Most Wrong, Chaos Agent, Most Scammed, Anne's Fave Human) and a personal report.
 9. Host controls at every phase: pause/resume, +10s, end now, skip, back, re-open judging, swap next modifier.
 10. Reconnect: a player who reloads or loses signal returns to the same seat, score, chips and any still-active chaos event. If Anne's phone drops, the game pauses and resumes on reconnect.
 
@@ -318,6 +318,52 @@ function scheduleChaos(room: Room, q: number, answerStart: number, endsAt: numbe
 
 The Singapore set (TOTE-LLY LUCKY, 4D, Huat Ah!, Auntie) is affectionate in-group humour. The slip and receipt borrow the generic layout of a betting slip and a thermal ticket, with a parody wordmark and a 67 watermark instead of the real operator's logo, and a "NOT A REAL TICKET" line. The bait set (boss email, 12.3 sale, Melvin) are in-jokes; the sale uses no real marketplace's name or logo. The God of Wealth is named in the copy and never drawn. The joke is the chain message and the chope, never the auntie herself. Anne can switch off any event.
 
+## 8b. Results and ranking (end of game)
+
+**Decision (20 Nov):** the results page is **PlayerResults**: compact podium + the Spreadsheep diverging bar chart. The dot strip, score journey and tiers in ResultsAlternatives are reference only and are not built in v1.
+
+End-of-game sequence on every phone: Spotlight crown moment → **PlayerResults** → Awards → **PlayerRanking** → personal report → Shut down party.
+
+### PlayerResults spec
+
+| Players | Row height | Behaviour |
+|---|---|---|
+| ≤ 15 | 20px (`.bx-hbar`) | Whole chart visible, or a short scroll inside the chart window |
+| 16–30 | 15px (`.bx-hbar--tight`) | Chart scrolls inside its window (`.bx-xl-chart__scroll`); the page itself never scrolls |
+| > 30 | 15px | Same as above (not expected at this party) |
+
+- **Layout (top → bottom):** `Setup — Installation complete` window with "Anne is now 24. Winners:" + `.bx-podium-sm` → Spreadsheep window (`.bx-xl`) with toolbar, formula bar, chart (`.bx-xl-chart`), sheet tabs → two buttons: Awards ▸ / Full ranking ▸.
+- **Podium:** order 2 · 1 · 3. Block heights fixed by rank (56 / 40 / 28px; fills `favourite`, `medal-silver`, `medal-bronze`, text `on-medal`). Avatar, name and score sit above each block. Scores can be negative; blocks never resize to score or to leftover space (`align-items: end`, no flex-grow).
+- **Chart rows:** `label (112px) | plot (1fr) | value (50px)`. Label = rank (medal emoji for 1–3) + 16px avatar + name (ellipsis). Value right-aligned, tabular numbers, negatives in `xl-neg` with a true minus (−).
+- **Axis maths:** `lo = min(0, minScore) − 400`, `hi = maxScore + 400`, `pos(v) = (v − lo) / (hi − lo) × 100%`. Zero line at `pos(0)`, 2px `xl-ink`. Gridlines at every multiple of 4,000 within range, 1px `xl-grid`, labelled `−4k · 0 · 4k · 8k` under the plot.
+- **Bars:** positive: `left: pos(0); width: pos(v) − pos(0)` in `xl-pos`, rounded right end; zero scores get a 0.6% sliver. Negative: `left: pos(v); width: pos(0) − pos(v)` in `xl-neg`, rounded left end.
+- **You:** the viewer's row gets `.bx-ants` (animated dashed box; static under reduced motion) + `.bx-you-tag`, and is scrolled into view on mount (`scrollIntoView({ block: 'center' })` inside the chart scroller).
+- **Tap a row:** yellow `.bx-xl-tip` above it: "Name: score · n/10 right · rank r of N". One tooltip at a time; tap elsewhere closes it.
+- **Formula bar:** cell ref of the viewer's row and `=RANK(<score>, Scores) → <rank>`.
+- **Sorting and ties:** score desc → right answers desc → name asc. Tied scores share a rank (1, 2, 2, 4); the medal goes to every player sharing ranks 1–3.
+- **Accessibility:** the chart is `role="table"` with one `role="row"` per player and an `aria-label` like "Rank 10, Dev, −300 points, you". Colour is never the only cue: every value is printed, and debt also shows on the ranking sheet.
+
+### PlayerRanking spec
+
+- Spreadsheet table (`.bx-sheet`), columns `# | Player | Score | Right`; rows 1–3 filled gold/silver/bronze; negatives in accounting brackets in `xl-neg`; the viewer's row has `.bx-ants` + YOU tag.
+- Tap a name: cell comment (`.bx-xl-note`, red corner on the cell) with rank, right answers, score, worst bet, chaos received and award.
+- Tabs: Ranking (active) · Chart (back to PlayerResults) · Q1–Q10 · Chaos log. The last two are stretch goals.
+
+### Data the server must send at game end
+
+```ts
+interface FinalStanding {
+  playerId: string; name: string; avatar: number;   // 0–7
+  score: number;                                    // can be negative
+  rank: number;                                     // shared on ties
+  right: number;                                    // correct answers out of 10
+  worstBet?: { q: number; chip: number; text: string };
+  chaosReceived: ChaosKind[];
+  awards: ('most_wrong' | 'chaos_agent' | 'most_scammed' | 'anne_fave_human')[];
+}
+// Send the full sorted list to every phone; each client marks its own playerId.
+```
+
 ## 9. Non-functional requirements
 
 - **Mobile-first:** designed at 390×780 CSS px (iPhone 12–15 class); must work from 360 wide to 430 wide. Portrait only. Everything fits without scrolling during a timed phase; scrolling is allowed in the lobby, leaderboard and host lists.
@@ -397,7 +443,7 @@ An optional `"modifier"` on a question pre-locks that row in the plan; everythin
 | Opinion rounds | **FavePicker** (crown, +lol) |
 | Chaos | **ChaosScam**, **ChaosToto** (TOTE-LLY slip + 4D receipt), **ChaosBait** (boss email, 12.3 sale, Melvin), **ChaosHuat**, **ChaosAuntie** |
 | People | **BuddyList**, 8 pixel avatars, **QRJoin** |
-| Scores | **Leaderboard** |
+| Scores | **Leaderboard**, **PlayerResults** ✅ chosen results page (podium + diverging bars), **PlayerRanking** (spreadsheet), ResultsAlternatives (reference only, not in v1) |
 | Fun | **Reactions**, **Motion**, **Spotlight** (hype reveals), troll **Dialog** |
 | Player app | **PlayerJoin**, **PlayerModifier**, **PlayerBet**, 11 question **Skins**, **PlayerChaos**, **PlayerWaiting**, **PlayerReveal**, **PlayerLeaderboard**, **PlayerPodium** |
 | Host app | **HostSetup**, **HostLobby**, **HostLive**, **HostJudge**, **HostPickFave** |

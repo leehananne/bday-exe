@@ -7,7 +7,7 @@ import {
 } from './game';
 import { hash } from './rng';
 import type {
-  AnswerValue, ChaosConfig, ChaosEvent, GameState, ModifierId, Outcome, Phase, PlayerId, QType, Question, Resolved, RevealStep, SkinId,
+  AnswerValue, ChaosConfig, ChaosEvent, ChaosKind, GameState, ModifierId, Outcome, Phase, PlayerId, QType, Question, Resolved, RevealStep, SkinId,
 } from './types';
 
 export interface PlayerPub { id: PlayerId; name: string; avatar: number; online: boolean }
@@ -39,7 +39,18 @@ export interface BoardRow { pid: PlayerId; name: string; avatar: number; score: 
 export interface BoardView { after: number; rows: BoardRow[]; mover: BoardRow | null; zeroes: string[] }
 export interface Award { id: string; icon: string; label: string; pid: PlayerId; name: string; detail: string }
 export interface Report { rank: number; score: number; right: number; played: number; best: string | null; worst: string | null; agent: string; scammedMs: number }
-export interface PodiumView { top: BoardRow[]; awards: Award[]; age: string | null }
+/** PRD §8b "Data the server must send at game end": every player, sorted, for the results chart and ranking sheet. */
+export interface FinalStanding {
+  pid: PlayerId; name: string; avatar: number;
+  score: number;      // can be negative
+  rank: number;       // shared on tied scores
+  right: number;      // correct answers out of `played`
+  played: number;
+  worstBet: { q: number; chip: number; text: string } | null;
+  chaosReceived: ChaosKind[];
+  awards: string[];   // award ids: wrong | agent | scammed | fave
+}
+export interface PodiumView { top: BoardRow[]; awards: Award[]; age: string | null; final: FinalStanding[] }
 export interface MeView {
   id: PlayerId; name: string; avatar: number;
   chips: number[]; bet: number | null; answer: AnswerValue | null;
@@ -192,6 +203,35 @@ function boardView(s: GameState, through: number): BoardView {
   return { after: through, rows, mover, zeroes };
 }
 
+function finalStandings(s: GameState, aw: Award[]): FinalStanding[] {
+  const t = totals(s, N(s));
+  const rows = active(s).map((p) => {
+    let right = 0, played = 0;
+    let worst: { q: number; chip: number; loss: number } | null = null;
+    s.rounds.forEach((r, i) => {
+      if (r.skipped || !r.result || !(p.id in r.result.outcome)) return;
+      played++;
+      const o = r.result.outcome[p.id];
+      if (o === 'right' || o === 'exact' || o === 'crowned' || o === 'lol') right++;
+      if (o === 'wrong') {
+        const chip = r.bets[p.id] ?? 0, loss = chip - (r.result.delta[p.id] ?? 0);
+        if (!worst || loss > worst.loss) worst = { q: i + 1, chip, loss };
+      }
+    });
+    const w = worst as { q: number; chip: number; loss: number } | null;
+    return {
+      pid: p.id, name: p.name, avatar: p.avatar, score: t[p.id] ?? 0, rank: 0, right, played,
+      worstBet: w ? { q: w.q, chip: w.chip, text: `${w.chip} on Q${w.q} ✗` } : null,
+      chaosReceived: [...p.chaosSeen],
+      awards: aw.filter((a) => a.pid === p.id).map((a) => a.id),
+    };
+  });
+  // score desc → right answers desc → name asc; tied scores share a rank (1, 2, 2, 4)
+  rows.sort((a, b) => b.score - a.score || b.right - a.right || a.name.localeCompare(b.name));
+  rows.forEach((r, i) => (r.rank = i > 0 && rows[i - 1].score === r.score ? rows[i - 1].rank : i + 1));
+  return rows;
+}
+
 function awards(s: GameState): Award[] {
   const ps = active(s);
   const tally = (f: (pid: PlayerId) => number) => ps.map((p) => ({ p, v: f(p.id) })).sort((a, b) => b.v - a.v)[0];
@@ -263,7 +303,8 @@ export function viewFor(s: GameState, who: { role: 'host' } | { role: 'player'; 
   };
   if (s.phase === 'PODIUM') {
     const b = boardView(s, N(s));
-    v.podium = { top: b.rows.slice(0, 3), awards: awards(s), age: extra?.age ?? null };
+    const aw = awards(s);
+    v.podium = { top: b.rows.slice(0, 3), awards: aw, age: extra?.age ?? null, final: finalStandings(s, aw) };
   }
 
   if (who.role === 'player') {

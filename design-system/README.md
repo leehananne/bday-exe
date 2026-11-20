@@ -99,6 +99,14 @@ BDAY.EXE is a mobile-first birthday trivia game styled as the early-2000s intern
 - Scam pop-ups always use FlopXP chrome (`data-theme="xp"`) whatever the skin, because that's where pop-ups lived. Singapore, lottery and bait events use their own fixed palettes: `huat-red` / `huat-gold` / `on-huat`; `slip-paper` / `slip-red` / `on-slip-red` / `slip-gold` (TOTE-LLY slip); `receipt-paper` / `receipt-ink` / `receipt-watermark` (4D); `forward-bubble` / `forward-ink`; `tissue` / `tissue-ink`; `sale` / `sale-deep` / `sale-yellow` (12.3 sale); `answers` / `on-answers` (Yah! Answers). The boss email uses FlopXP chrome.
 - Copy: scams over-promise ("FREE eyePad Pro Max", "24 viruses"); the lottery is all 6s and 7s (4D is 6767 everywhere, $67.67, 06/07/67); Huat blesses with no effect; Auntie forwards and chopes; the boss wants a ppt in 5 min; the 12.3 sale screams; someone needs to know if Melvin is a gangster name. Parody names and no operator or marketplace logos. The God of Wealth is named, never drawn.
 
+## Results charts
+
+- Results live in a Spreadsheep 2003 window (`.bx-xl`): toolbar, formula bar (a joke slot), chart object, sheet tabs. Colours: `xl-sheet`, `xl-ink`, `xl-head`, recessive `xl-grid`.
+- Scores use a diverging pair: `xl-pos` for points, `xl-neg` for debt (validated: CVD ΔE 17.8). Every bar also prints its value. Debts read as accounting brackets in the ranking sheet.
+- Podium blocks are sized by rank, never by score. Medal fills: `favourite`, `medal-silver`, `medal-bronze` with `on-medal` text.
+- The viewer is marked with marching ants (`.bx-ants`) + a YOU tag, never colour alone.
+- Line charts (score journey) use `series-1/2/3` for the top 3 (validated set), ink at 3.5px for "you", and `xl-grid` for everyone else.
+
 ## Accessibility checklist
 
 - Text ≥4.5:1 on its ground in every theme (verified for all 8); control edges and focus ≥3:1.

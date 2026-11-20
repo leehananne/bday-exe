@@ -450,4 +450,32 @@ describe('game flow', () => {
     g.host({ t: 'revealNext' });
     expect((viewFor(g.s, { role: 'player', pid: 'p1' }, g.now).reveal!.answer as any).crowned.text).toBe('crocs + tiara');
   });
+
+  it('final standings (PRD §8b): sorted by score → right → name, ties share a rank, worst bet + right count', () => {
+    const g = new Sim(4);
+    g.s.chaos.intensity = 'off';
+    g.s.plan = ['normal', 'double', 'normal', 'risky', 'double', 'normal', 'trouble', 'normal', 'double', 'trouble'];
+    g.host({ t: 'start' });
+    for (let q = 1; q <= 10; q++) {
+      g.toAnswer();
+      [0, 1, 2, 3].forEach((i) => g.pl(i, { t: 'bet', chip: chipsLeft(g.s, `p${i}`)[0] }));
+      g.endBet();
+      const question = g.s.questions[q - 1];
+      if (question.type === 'mc') { g.pl(0, { t: 'answer', v: question.answer! }); g.pl(1, { t: 'answer', v: question.answer! }); g.pl(3, { t: 'answer', v: (question.answer! + 1) % 2 }); }
+      g.endAnswer();
+      if (g.s.phase === 'JUDGE') { if (question.type === 'number') g.host({ t: 'setReal', value: 1 }); g.host({ t: 'finishJudging' }); }
+      g.revealAll();
+      if (g.s.phase === 'LEADERBOARD') g.host({ t: 'next' });
+    }
+    expect(g.s.phase).toBe('PODIUM');
+    const fin = viewFor(g.s, { role: 'player', pid: 'p2' }, g.now).podium!.final;
+    expect(fin.map((f) => f.pid).slice(0, 2).sort()).toEqual(['p0', 'p1']); // same answers, same chips → tied
+    expect(fin[0].rank).toBe(1);
+    expect(fin[1].rank).toBe(1); // tie shares rank 1
+    expect(fin[0].name < fin[1].name).toBe(true); // tie broken by name for display
+    for (let i = 1; i < fin.length; i++) expect(fin[i - 1].score).toBeGreaterThanOrEqual(fin[i].score);
+    const p3 = fin.find((f) => f.pid === 'p3')!;
+    expect(p3.played).toBe(10);
+    expect(p3.worstBet?.text).toMatch(/on Q\d+ ✗/);
+  });
 });
