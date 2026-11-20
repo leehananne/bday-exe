@@ -8,6 +8,7 @@ import { parseQuestions, SKINS } from '../shared/questions';
 import type { ChaosEvent, ChaosKind, ModifierId, Question } from '../shared/types';
 import type { View } from '../shared/views';
 import sample from '../../questions.example.json';
+import party from '../../questions.json';
 import { ChaosOverlay } from './chaos';
 import { AnswerTile, Avatar, fmt, Heat, KEYS, ModBadge, Pill, QR, Shape, signed, Timer, Window, type Key } from './ds';
 import { secondsLeft, store, useNow, useRoom, useWakeLock, type Room } from './net';
@@ -44,7 +45,7 @@ export function HostEntry() {
 function CreateRoom({ onCreate }: { onCreate: (pin: string, questions: unknown, seed?: number) => void }) {
   const last = store.get('bday:host:last');
   const [pin, setPin] = useState(last ?? 'ANNE');
-  const [src, setSrc] = useState<'sample' | 'file'>('sample');
+  const [src, setSrc] = useState<'party' | 'sample' | 'file'>('party');
   const [file, setFile] = useState<{ name: string; data: unknown } | null>(null);
   const [errors, setErrors] = useState<string[]>([]);
   const [seed, setSeed] = useState('');
@@ -53,7 +54,7 @@ function CreateRoom({ onCreate }: { onCreate: (pin: string, questions: unknown, 
     e.preventDefault();
     const P = pin.toUpperCase();
     if (!PIN_RE.test(P)) return setErrors(['PIN must be 4 letters (A–Z).']);
-    const data = src === 'sample' ? sample : file?.data;
+    const data = src === 'party' ? party : src === 'sample' ? sample : file?.data;
     const r = parseQuestions(data);
     if (!r.ok) return setErrors(r.errors);
     onCreate(P, data, seed ? Number(seed) : undefined);
@@ -72,7 +73,8 @@ function CreateRoom({ onCreate }: { onCreate: (pin: string, questions: unknown, 
             <label className="caption app-muted" htmlFor="hpin">Room PIN (4 letters, goes in the link)</label>
             <div className="bx-address__field"><input id="hpin" value={pin} maxLength={4} onChange={(e) => setPin(e.target.value.replace(/[^a-z]/gi, '').toUpperCase())} autoCapitalize="characters" /></div>
             <p className="caption app-muted app-nomargin">Questions</p>
-            <label className="bx-toggle-row"><input type="radio" name="src" checked={src === 'sample'} onChange={() => setSrc('sample')} /><span>Sample questions<small>The 10 from the PRD (edit questions.example.json)</small></span></label>
+            <label className="bx-toggle-row"><input type="radio" name="src" checked={src === 'party'} onChange={() => setSrc('party')} /><span>Party questions<small>Anne's 10 (questions.json in the repo)</small></span></label>
+            <label className="bx-toggle-row"><input type="radio" name="src" checked={src === 'sample'} onChange={() => setSrc('sample')} /><span>Sample questions<small>For test runs (questions.example.json)</small></span></label>
             <label className="bx-toggle-row"><input type="radio" name="src" checked={src === 'file'} onChange={() => setSrc('file')} /><span>Upload questions.json<small>{file ? file.name : '10 questions, same format as the sample'}</small></span></label>
             {src === 'file' && (
               <input type="file" accept="application/json,.json" aria-label="questions.json" onChange={async (e) => {
@@ -110,7 +112,7 @@ function HostApp({ pin, secret, create }: { pin: string; secret: string; create?
     return (
       <Phone host><Chrome title={`Room ${pin}`} /><div className="bx-phone__main app-center">
         <Window title="BDAY.EXE"><div className="bx-body bx-stack"><p className="phone-body app-nomargin" style={{ whiteSpace: 'pre-wrap' }}><b>{st.error.msg}</b></p>
-          {st.error.code === 'no_room' && <button className="bx-btn bx-btn--primary" onClick={() => { room?.setHello({ role: 'host', secret, create: { questions: sample } }); room?.ws.reconnect(); }}>Create it with the sample questions</button>}
+          {st.error.code === 'no_room' && <button className="bx-btn bx-btn--primary" onClick={() => { room?.setHello({ role: 'host', secret, create: { questions: party } }); room?.ws.reconnect(); }}>Create it with the party questions</button>}
           <a className="bx-btn" href="/host" onClick={() => { location.hash = ''; }}>Start a different room</a></div></Window>
       </div></Phone>
     );

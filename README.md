@@ -60,7 +60,8 @@ npm run deploy
 
 ## Running the party
 
-1. Edit `questions.example.json` (or upload your own file in the host app). It needs exactly 10 questions with these limits:
+1. The party's questions live in **`questions.json`** (the host page's default). `questions.example.json` is the sample set for
+   test runs, and you can also upload a file in the host app. It needs exactly 10 questions with these limits:
    prompt ≤110 characters, options ≤40. The skins are `xp igloo fakebook ie monster dollz bear myspaze brick bsod insta`, and the
    types are `mc typed fave crowd number`. Set `"modifier"` on a question to pre-lock that row of the plan.
    Optional `"hype"` (≤40 chars) shows a big banner with confetti when that question starts, e.g.

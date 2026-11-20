@@ -1,0 +1,139 @@
+[
+  {
+    "id": 1,
+    "skin": "fakebook",
+    "type": "mc",
+    "category": "Anne Lore",
+    "prompt": "Which (ang moh) drink does Anne order every. single. time?",
+    "seconds": 20,
+    "options": [
+      "Iced oat latte",
+      "Matcha, oat, no ice",
+      "Bubble tea, 0% sugar",
+      "\"Just water\" (lies)"
+    ],
+    "answer": 0
+  },
+  {
+    "id": 2,
+    "skin": "xp",
+    "type": "mc",
+    "category": "Anne Lore",
+    "prompt": "Which drink does Anne order at work?",
+    "seconds": 20,
+    "options": [
+      "Kopi Peng",
+      "Teh O Kosong Peng",
+      "Teh Si Peng",
+      "Kopi O Siew Dai Peng"
+    ],
+    "answer": 1
+  },
+  {
+    "id": 3,
+    "skin": "dollz",
+    "type": "fave",
+    "category": "Affirmation Station",
+    "prompt": "What's your favourite thing about Anne?",
+    "seconds": 45,
+    "hype": "TIME TO PROVIDE AFFIRMATION!!!!"
+  },
+  {
+    "id": 4,
+    "skin": "myspaze",
+    "type": "mc",
+    "category": "Sleep Crimes",
+    "prompt": "What time does Anne actually wake up on a weekend?",
+    "seconds": 20,
+    "options": [
+      "7am, productive queen",
+      "9am",
+      "11am",
+      "Afternoon. Ask again later."
+    ],
+    "answer": 1
+  },
+  {
+    "id": 5,
+    "skin": "brick",
+    "type": "number",
+    "category": "Phone Crimes",
+    "prompt": "How many browser tabs does Anne have open on her phone?",
+    "seconds": 25
+  },
+  {
+    "id": 6,
+    "skin": "ie",
+    "type": "typed",
+    "category": "Ancient History",
+    "prompt": "Where was Anne's first job?",
+    "seconds": 30,
+    "accept": [
+      "Bookshop",
+      "Bookstore"
+    ]
+  },
+  {
+    "id": 7,
+    "skin": "bear",
+    "type": "mc",
+    "category": "Childhood Dreams",
+    "prompt": "What was Anne's dream job at age 10?",
+    "seconds": 20,
+    "options": [
+      "Zookeeper",
+      "Journalist",
+      "Astronaut",
+      "CEO of everything"
+    ],
+    "answer": 0
+  },
+  {
+    "id": 8,
+    "skin": "fakebook",
+    "type": "mc",
+    "category": "Family Only",
+    "prompt": "What is Anne's sister's actual name?",
+    "seconds": 20,
+    "options": [
+      "Charmaine",
+      "Germaine",
+      "Jermaine (like the Jackson 5)",
+      "Jie Jie. It's on her IC."
+    ],
+    "answer": 1,
+    "hype": "FAMILY THIS IS YOUR CHANCE TO WIN BIG"
+  },
+  {
+    "id": 9,
+    "skin": "insta",
+    "type": "mc",
+    "category": "Poly Only",
+    "prompt": "Where did Anne go for her poly grad trip?",
+    "seconds": 20,
+    "options": [
+      "Denmark",
+      "South Korea",
+      "Phuket",
+      "Batam"
+    ],
+    "answer": 1,
+    "hype": "POLY FRIENDS, TIME 2 SHINE"
+  },
+  {
+    "id": 10,
+    "skin": "bsod",
+    "type": "mc",
+    "category": "FINAL BOSS",
+    "prompt": "What did Anne actually study at uni? (No checking LinkedIn!1!1!!!!!)",
+    "seconds": 20,
+    "options": [
+      "Computer stuff (fixes your printer)",
+      "UI/UX (draws buttons for a living)",
+      "Design Engineering",
+      "Engineering. Can fix your aircon?"
+    ],
+    "answer": 2,
+    "hype": "GOOD LUCK EVERYBADI"
+  }
+]

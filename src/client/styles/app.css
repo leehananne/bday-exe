@@ -156,3 +156,6 @@ button.bx-key:focus-visible { outline: 3px solid var(--focus); outline-offset: 2
 .app-ig-body > :not(.app-ig-photo):not(.bx-ig-actions):not(.app-nomargin) { padding: 10px 12px; }
 .app-ig-photo { aspect-ratio: auto !important; flex: 1; min-height: 96px; }
 .app-ig-photo .bx-avatar--lg { width: 72px; height: 72px; }
+
+/* Fakebook: in the card zone the chat message sits at the bottom, like the newest message in a chat */
+.app-zone > .app-fb-msg { align-items: flex-end !important; }

@@ -143,7 +143,7 @@ export function Card({ skin, n, title, children, style, className = '' }: {
       );
     case 'fakebook':
       return (
-        <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', ...style }} className={className}>
+        <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', ...style }} className={`app-fb-msg ${className}`}>
           <Avatar i={0} />
           <div className="bx-bubble" style={{ flex: 1 }}><span className="bx-chat__who">Anne · 3 Oct 2009, 2:14am</span><br />{children}</div>
         </div>
@@ -184,7 +184,7 @@ export function QuestionText({ skin, prompt }: { skin: SkinId; prompt: string })
   );
   if (skin === 'bsod') return <p style={{ fontSize: 26, lineHeight: '28px' }}>{prompt}</p>;
   if (skin === 'myspaze') return <p className="bx-pq__text" style={{ font: '700 22px/28px var(--font-comic)' }}>{prompt}</p>;
-  if (skin === 'fakebook') return <>{prompt}</>;
+  if (skin === 'fakebook') return <span style={{ font: '700 21px/27px var(--bx-font-chat)' }}>{prompt}</span>;
   if (skin === 'insta') return (
     <>
       <div className="bx-ig-photo app-ig-photo" aria-hidden="true"><Avatar i={0} size="lg" /><span className="bx-ig-filter">Filter: Lo-Fi Regret</span></div>

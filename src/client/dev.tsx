@@ -7,6 +7,7 @@ import { parseQuestions, SKINS } from '../shared/questions';
 import type { ChaosKind, SkinId } from '../shared/types';
 import { viewFor } from '../shared/views';
 import sample from '../../questions.example.json';
+import party from '../../questions.json';
 import { PlayerPreview } from './player';
 
 export function DevPreview() {
@@ -16,7 +17,7 @@ export function DevPreview() {
   const phase = qs.get('phase') ?? 'ANSWER';
   const answered = qs.has('answered');
   const view = useMemo(() => {
-    const parsed = parseQuestions(sample);
+    const parsed = parseQuestions(qs.get('set') === 'party' ? party : sample); // ?set=party previews Anne's real questions
     if (!parsed.ok) throw new Error(parsed.errors.join());
     let now = Date.now();
     const skin = qs.get('skin'); // ?skin=insta re-skins question q for previewing
