@@ -86,11 +86,11 @@ function players(n: number): Player[] {
 }
 
 describe('scheduleChaos acceptance (PRD §8a)', () => {
-  it('15 players, chaos intensity: ~4–6 per question in Q2–Q9, ≤3 each, never the same kind twice', () => {
+  it('chaos intensity: every player gets chaos on 6–7 questions, a different random set each, never the same kind twice', () => {
     for (let seed = 1; seed <= 20; seed++) {
       const room = { chaos: { intensity: 'chaos' as const, enabled: [...ALL_KINDS], mercy: false }, seed, questions: QS };
       const ps = players(15);
-      let total = 0;
+      const hitOn: Record<string, number[]> = {};
       for (let q = 1; q <= 10; q++) {
         const evs = scheduleChaos(room, q, 0, QS[q - 1].seconds * 1000, ps);
         if (q === 1 || q === 10) expect(evs).toHaveLength(0);
@@ -99,18 +99,25 @@ describe('scheduleChaos acceptance (PRD §8a)', () => {
           expect(p.chaosSeen).not.toContain(e.kind);
           p.chaosCount++;
           p.chaosSeen.push(e.kind);
-          expect(e.at).toBeGreaterThanOrEqual(3000);
-          expect(e.at).toBeLessThanOrEqual(QS[q - 1].seconds * 1000 - 6000);
+          (hitOn[p.id] ??= []).push(q);
+          expect(e.at).toBeGreaterThanOrEqual(2500);
+          expect(e.at).toBeLessThanOrEqual(QS[q - 1].seconds * 1000 - 5000);
           if (e.kind === 'toto') expect(e.data?.numbers).toEqual([6, 7, 16, 17, 26, 27]);
           if (e.kind === 'auntie_chope') expect(QS[q - 1].type).toBe('mc');
         }
-        total += evs.length;
       }
-      for (const p of ps) expect(p.chaosCount).toBeLessThanOrEqual(3);
-      const perQ = total / 8;
-      expect(perQ).toBeGreaterThan(2.5);
-      expect(perQ).toBeLessThan(6.5);
+      for (const p of ps) expect(p.chaosCount).toBeGreaterThanOrEqual(6), expect(p.chaosCount).toBeLessThanOrEqual(7);
+      // randomised per player: not everyone is hit on the same questions
+      expect(new Set(Object.values(hitOn).map((qs) => qs.join(','))).size).toBeGreaterThan(5);
     }
+  });
+  it('mild intensity: 3–4 questions per player', () => {
+    const room = { chaos: { intensity: 'mild' as const, enabled: [...ALL_KINDS], mercy: false }, seed: 9, questions: QS };
+    const ps = players(10);
+    for (let q = 1; q <= 10; q++) for (const e of scheduleChaos(room, q, 0, QS[q - 1].seconds * 1000, ps)) {
+      const p = ps.find((x) => x.id === e.player)!; p.chaosCount++; p.chaosSeen.push(e.kind);
+    }
+    for (const p of ps) expect([3, 4]).toContain(p.chaosCount);
   });
   it('is deterministic (reconnects re-render the same event)', () => {
     const room = { chaos: { intensity: 'chaos' as const, enabled: [...ALL_KINDS], mercy: false }, seed: 36, questions: QS };

@@ -60,6 +60,8 @@ BDAY.EXE is a mobile-first birthday trivia game styled as the early-2000s intern
 | Twinkle | `.bx-anim-twinkle` | 1.6s loop | Glitter and sparkles only |
 | Hourglass | `.bx-anim-spin` | 1.6s, 8 steps | Waiting states |
 | Stripes | `.bx-anim-stripes` | 0.8s loop | Active progress bars |
+| Spotlight | `.bx-spotlight` (+ `.is-leaving`) | 0.6s slam, ~2.7s hold, 0.4s fly-up | Hype reveals only: modifier, MYSTERY rule, crowned fave. Exits by flying into place, never fading |
+| Pointer | `.bx-pointer` + `.is-beckon` | 1.1s bounce | Giant arrow cursor + pulsing outline showing where to type; removed on focus |
 | Marquee | `.bx-marquee` | 12s | MySpaze / Exploder flavour text only |
 | Crash cut | `.skin-bsod` | instant | Final question: every phone cuts to blue at the same moment |
 

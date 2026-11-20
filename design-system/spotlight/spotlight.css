@@ -1,0 +1,71 @@
+/* BDAY.EXE Spotlight — the hype reveal.
+   Standalone: works with or without BDAY.EXE tokens.css (fallback values are the FlopXP defaults).
+   Timeline: 0 dim · 200ms light pool · 600ms banner slams in · hold (beams sweep) · .is-leaving: fly to target, dim lifts. */
+
+.bx-spotlight {
+  --spot-ink: var(--qr-ink, #000000);
+  --spot-light: var(--qr-paper, #ffffff);
+  --spot-beam: var(--favourite, #ffd400);
+  --spot-font: var(--font-pixel, "Pixelify Sans", "Courier New", monospace);
+  --spot-ui: var(--font-ui, Tahoma, Verdana, sans-serif);
+  position: fixed;            /* use position:absolute inside a phone frame or preview */
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  pointer-events: none;       /* never blocks the UI underneath */
+}
+.bx-spotlight--contained { position: absolute; }
+
+.bx-spotlight__dim { position: absolute; inset: 0; background: var(--spot-ink); opacity: .74; animation: bx-spot-dim-in .3s ease-out both; }
+.bx-spotlight__pool {
+  position: absolute; left: 50%; top: 50%; width: 360px; height: 360px; margin: -180px 0 0 -180px; border-radius: 50%;
+  background: radial-gradient(circle, var(--spot-light) 0%, transparent 62%); opacity: .3;
+  animation: bx-spot-pool .5s .2s ease-out both;
+}
+.bx-spotlight__beam {
+  position: absolute; top: -60px; width: 200px; height: 140vh;
+  background: linear-gradient(180deg, var(--spot-beam) 0%, transparent 80%);
+  clip-path: polygon(46% 0, 54% 0, 100% 100%, 0 100%); opacity: .38; transform-origin: 50% 0;
+}
+.bx-spotlight__beam--l { left: -40px; animation: bx-spot-sweep-l 2.6s ease-in-out infinite alternate; }
+.bx-spotlight__beam--r { right: -40px; animation: bx-spot-sweep-r 2.6s ease-in-out infinite alternate; }
+
+.bx-spotlight__spark { position: absolute; width: 24px; height: 24px; fill: var(--spot-beam); animation: bx-spot-twinkle 1.2s ease-in-out infinite; }
+.bx-spotlight__spark path { stroke: var(--spot-ink); stroke-width: .6; }
+
+.bx-spotlight__stage {
+  position: relative; z-index: 1; width: min(310px, 86vw);
+  display: grid; gap: 12px; justify-items: center; text-align: center;
+  animation: bx-spot-slam .55s .6s cubic-bezier(.2, 1.6, .4, 1) both;
+}
+.bx-spotlight__drum { color: var(--spot-light); font: 700 15px/20px var(--spot-font); letter-spacing: 3px; }
+.bx-spotlight__rule { margin: 0; color: var(--spot-light); font: 700 16px/22px var(--spot-ui); }
+.bx-spotlight__banner { width: 100%; box-shadow: 0 0 0 4px var(--spot-light), 0 0 48px 14px var(--spot-beam); }
+
+/* Exit: the JS flies the banner to its target with the Web Animations API; this is the CSS fallback. */
+.bx-spotlight.is-leaving .bx-spotlight__dim,
+.bx-spotlight.is-leaving .bx-spotlight__pool,
+.bx-spotlight.is-leaving .bx-spotlight__beam,
+.bx-spotlight.is-leaving .bx-spotlight__spark,
+.bx-spotlight.is-leaving .bx-spotlight__drum,
+.bx-spotlight.is-leaving .bx-spotlight__rule { animation: bx-spot-out .35s ease-in forwards; }
+.bx-spotlight.is-leaving.no-target .bx-spotlight__stage { animation: bx-spot-fly-up .4s cubic-bezier(.5, 0, .8, .4) forwards; }
+
+@keyframes bx-spot-dim-in { from { opacity: 0; } to { opacity: .74; } }
+@keyframes bx-spot-out { to { opacity: 0; } }
+@keyframes bx-spot-pool { from { transform: scale(.2); opacity: 0; } to { transform: scale(1); opacity: .3; } }
+@keyframes bx-spot-sweep-l { from { transform: rotate(-28deg); } to { transform: rotate(18deg); } }
+@keyframes bx-spot-sweep-r { from { transform: rotate(28deg); } to { transform: rotate(-18deg); } }
+@keyframes bx-spot-twinkle { 0%, 100% { opacity: .25; transform: scale(.8); } 50% { opacity: 1; transform: scale(1.1); } }
+@keyframes bx-spot-slam { 0% { transform: scale(2.6) rotate(-8deg); opacity: 0; } 60% { opacity: 1; } 100% { transform: scale(1) rotate(0); opacity: 1; } }
+@keyframes bx-spot-fly-up { to { transform: translateY(-40vh) scale(.32); opacity: .2; } }
+
+/* Reduced motion and Calm mode: a still, dimmed banner. Nothing sweeps, slams or twinkles. */
+@media (prefers-reduced-motion: reduce) {
+  .bx-spotlight *, .bx-spotlight.is-leaving * { animation: none !important; }
+  .bx-spotlight__beam, .bx-spotlight__spark { display: none; }
+}
+.bx-calm .bx-spotlight * { animation: none !important; }
+.bx-calm .bx-spotlight__beam, .bx-calm .bx-spotlight__spark { display: none; }

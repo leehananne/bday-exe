@@ -142,6 +142,7 @@ function delta(chip: number, outcome: 'right' | 'wrong' | 'crowned' | 'lol' | 'e
 }
 ```
 
+- **The reveal is a hype moment, not a toast.** At the start of each bet phase the modifier gets the **Spotlight** (design system › Motion › Spotlight). The screen dims (`qr-ink` at 74%), a light pool opens, two gold beams sweep, and the badge slams in with a drumroll line ("★ THIS ROUND IS… ★") and a one-line rule. It holds for ~2.7s, then flies up into its meta-row pill instead of fading out, so players see where it went. The bet timer starts only after it leaves. The same Spotlight is used for the MYSTERY rule at reveal and for the crowned Host's Fave. Under reduced motion or Calm mode it's a static dimmed banner.
 - **MYSTERY** resolves at lock time with the room's seeded RNG to `double`, `risky` or `trouble` (equal weight), stored server-side and revealed first in the reveal sequence ("The mystery rule was… DOUBLE TROUBLE").
 - **Strategy the UI should make obvious:** on RISKY the expected value is chip × (2p − 1), where p is the player's confidence, so bet big only when you're more than 50% sure; DOUBLE TROUBLE doubles that. On DOUBLE there's no downside, so it's the round for your 1000 chip. Chip buttons show the stakes (`+400` or `±400`) under each value.
 - **Scores can go negative.** A negative total shows as "IN DEBT −400" on the leaderboard (with ▼ and the word, not just colour). No floor: being in debt to Anne is part of the joke.
@@ -214,7 +215,7 @@ Skins, types and modifiers can be re-paired in `questions.json` and HostSetup.
 3. Lobby on both apps; Anne can kick and starts when ready. Late joiners can enter until Q3 with a full chip set.
 4. Per-question flow from §4 with server-authoritative timers, the wager rules from §5 and the round modifiers from §6a.
 5. All five question types (§6), including the host's **Judge**, **Pick your fave** and **Enter number** screens.
-6. **Modifier planner** (HostSetup): generate from seed, show the plan with validation, lock/edit/re-roll, save. Modifier reveal at the start of every bet phase (PlayerModifier) with stakes on each chip.
+6. **Modifier planner** (HostSetup): generate from seed, show the plan with validation, lock/edit/re-roll, save. Spotlight modifier reveal at the start of every bet phase (PlayerModifier), then stakes on each chip.
 7. Host-paced reveal: (mystery rule) → split → answer → points → leaderboard. Each player sees their own result (right/wrong, delta, new rank) in the skin.
 8. The final question uses the FINAL modifier; podium on every phone with joke awards (Most Wrong, Chaos Agent, Most Scammed, Anne's Fave Human), then a personal report.
 9. Host controls at every phase: pause/resume, +10s, end now, skip, back, re-open judging, swap next modifier.
@@ -397,7 +398,7 @@ An optional `"modifier"` on a question pre-locks that row in the plan; everythin
 | Chaos | **ChaosScam**, **ChaosToto** (TOTE-LLY slip + 4D receipt), **ChaosBait** (boss email, 12.3 sale, Melvin), **ChaosHuat**, **ChaosAuntie** |
 | People | **BuddyList**, 8 pixel avatars, **QRJoin** |
 | Scores | **Leaderboard** |
-| Fun | **Reactions**, **Motion**, troll **Dialog** |
+| Fun | **Reactions**, **Motion**, **Spotlight** (hype reveals), troll **Dialog** |
 | Player app | **PlayerJoin**, **PlayerModifier**, **PlayerBet**, 11 question **Skins**, **PlayerChaos**, **PlayerWaiting**, **PlayerReveal**, **PlayerLeaderboard**, **PlayerPodium** |
 | Host app | **HostSetup**, **HostLobby**, **HostLive**, **HostJudge**, **HostPickFave** |
 

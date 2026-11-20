@@ -28,6 +28,7 @@ export function DevPreview() {
     apply(s, { role: 'host' }, { t: 'start' }, now);
     // fast-forward to question qn
     for (let q = 1; ; q++) {
+      if (q === qn && phase === 'MODIFIER') break; // ?phase=MODIFIER: the Spotlight reveal
       now += TIMING.MODIFIER; tick(s, now);
       if (q === qn && phase === 'BET') break;
       apply(s, { role: 'player', pid: 'p0' }, { t: 'bet', chip: 700 - (q % 3) * 100 }, now);
@@ -47,7 +48,9 @@ export function DevPreview() {
     if (reveal && s.phase === 'ANSWER') {
       const q = s.questions[qn - 1];
       if (q.type === 'mc') apply(s, { role: 'player', pid: 'p0' }, { t: 'answer', v: ((q.answer ?? 0) + 1) % (q.options?.length ?? 2) }, now);
+      if (q.type === 'fave') { apply(s, { role: 'player', pid: 'p1' }, { t: 'answer', v: 'feather boa + crocs + tiara' }, now); }
       apply(s, { role: 'host' }, { t: 'endNow' }, now); tick(s, now);
+      if ((s.phase as string) === 'JUDGE' && q.type === 'fave') apply(s, { role: 'host' }, { t: 'crown', pid: 'p1' }, now);
       if ((s.phase as string) === 'JUDGE') { if (q.type === 'number') apply(s, { role: 'host' }, { t: 'setReal', value: 1 }, now); apply(s, { role: 'host' }, { t: 'finishJudging' }, now); }
       apply(s, { role: 'host' }, { t: 'setFlags', autoReveal: false }, now);
       while ((s.phase as string) === 'REVEAL' && stepsFor(s)[s.revealStep] !== reveal) apply(s, { role: 'host' }, { t: 'revealNext' }, now);

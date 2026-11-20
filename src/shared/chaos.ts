@@ -13,12 +13,22 @@ export const WEIGHT: Record<ChaosKind, number> = {
 };
 
 export const DURATION: Record<ChaosKind, number | null> = {
-  scam_eyepad: 5000, scam_virus: 5000, scam_smileys: 5000, toto: 5000, fourd: 5000, huat: 4000,
-  auntie_forward: 5000, auntie_chope: null, boss_email: 5000, bday_sale: 5000, melvin: 5000,
+  scam_eyepad: 6000, scam_virus: 6000, scam_smileys: 6000, toto: 6000, fourd: 6000, huat: 5000,
+  auntie_forward: 6000, auntie_chope: null, boss_email: 7000, bday_sale: 7000, melvin: 6000,
 };
 
-export const CHANCE: Record<Intensity, number> = { off: 0, mild: 0.15, chaos: 0.35 };
-export const MAX: Record<Intensity, number> = { off: 0, mild: 2, chaos: 3 };
+/** How many questions each player gets hit on, out of Q2…Q(N−1). Each player gets their own random set. */
+export const PER_PLAYER: Record<Intensity, [number, number]> = { off: [0, 0], mild: [3, 4], chaos: [6, 7] };
+
+/** The questions this player's chaos lands on: a per-player random pick, fixed by the room seed (reconnect-safe). */
+export function chaosQuestions(seed: number, pid: string, total: number, intensity: Intensity): number[] {
+  const [lo, hi] = PER_PLAYER[intensity];
+  const eligible = Array.from({ length: Math.max(0, total - 2) }, (_, i) => i + 2); // never Q1 or the final
+  const rng = mulberry32(hash(seed, 'chaos-plan', pid));
+  const k = Math.min(eligible.length, lo + Math.floor(rng() * (hi - lo + 1)));
+  for (let i = eligible.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [eligible[i], eligible[j]] = [eligible[j], eligible[i]]; }
+  return eligible.slice(0, k).sort((a, b) => a - b);
+}
 
 /** The toggle rows in HostSetup and the kinds each one controls. */
 export const FAMILIES: { id: string; label: string; hint: string; kinds: ChaosKind[] }[] = [
@@ -57,12 +67,12 @@ export function scheduleChaos(
   const out: ChaosEvent[] = [];
   for (const p of eligible) {
     const rng = mulberry32(hash(room.seed, q, p.id)); // deterministic per room/question/player
-    if (rng() >= CHANCE[cfg.intensity] || p.chaosCount >= MAX[cfg.intensity]) continue;
+    if (!chaosQuestions(room.seed, p.id, N, cfg.intensity).includes(q)) continue;
     const kinds = cfg.enabled.filter((k) => !p.chaosSeen.includes(k) && fits(k, question));
     if (!kinds.length) continue;
     const kind = weightedPick(rng, kinds, (k) => WEIGHT[k]);
-    const lo = answerStart + 3000, hi = endsAt - 6000;
-    if (hi - lo < 2000) continue;
+    const lo = answerStart + 2500, hi = endsAt - 5000;
+    if (hi - lo < 1500) continue;
     const at = Math.round(lo + rng() * (hi - lo));
     const d = DURATION[kind];
     out.push({

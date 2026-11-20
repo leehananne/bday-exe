@@ -1,7 +1,8 @@
 // Design-system primitives as React components. Markup and class names mirror the
 // BDAY.EXE design system previews; styling lives in styles/bundle.css + tokens.css.
 import qrcode from 'qrcode-generator';
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import { MOD_META, stakes } from '../shared/modifiers';
 import type { ModifierId } from '../shared/types';
 
@@ -270,4 +271,40 @@ export function useShake(): [boolean, () => void] {
   const [on, setOn] = useState(false);
   const t = useRef<ReturnType<typeof setTimeout>>();
   return [on, () => { setOn(false); requestAnimationFrame(() => setOn(true)); clearTimeout(t.current); t.current = setTimeout(() => setOn(false), 700); }];
+}
+
+// ---------------------------------------------------------------- Spotlight (DS › Motion › Spotlight)
+/** The hype moment: dim, light pool, two sweeping gold beams, banner slams in, holds, then flies up
+ *  (.is-leaving) instead of fading. Top layer of the phone, tap-through. Leaves at `leaveAt` ms after mount. */
+export function Spotlight({ drum, rule, children, extra, leaveAt = 3300 }: {
+  drum: string; rule?: ReactNode; children: ReactNode; extra?: ReactNode; leaveAt?: number;
+}) {
+  const [host, setHost] = useState<HTMLElement | null>(null);
+  const [leaving, setLeaving] = useState(false);
+  const [gone, setGone] = useState(false);
+  useLayoutEffect(() => { setHost(document.querySelector<HTMLElement>('.bx-phone')); }, []);
+  useEffect(() => {
+    try { (navigator as any).vibrate?.(30); } catch { /* iOS */ }
+    const a = setTimeout(() => setLeaving(true), leaveAt);
+    const b = setTimeout(() => setGone(true), leaveAt + 420);
+    return () => { clearTimeout(a); clearTimeout(b); };
+  }, [leaveAt]);
+  if (!host || gone) return null;
+  const spark = (style: React.CSSProperties, i: number) => (
+    <svg key={i} className="bx-sparkle" style={style} viewBox="0 0 24 24" aria-hidden="true"><path d="M12 0l3 9 9 3-9 3-3 9-3-9-9-3 9-3z" style={{ stroke: 'var(--qr-ink)', strokeWidth: 0.6 }} /></svg>
+  );
+  return createPortal(
+    <div className={`bx-spotlight ${leaving ? 'is-leaving' : ''}`} role="status" aria-live="assertive">
+      <div className="bx-spotlight__dim" /><div className="bx-spotlight__pool" />
+      <div className="bx-spotlight__beam bx-spotlight__beam--l" /><div className="bx-spotlight__beam bx-spotlight__beam--r" />
+      {[{ left: 24, top: '36%' }, { right: 30, top: '30%', animationDelay: '-.4s' }, { left: 46, bottom: '28%', animationDelay: '-.8s' }, { right: 52, bottom: '22%', animationDelay: '-1.1s' }].map(spark)}
+      <div className="bx-spotlight__stage">
+        <span className="bx-spotlight__drum">{drum}</span>
+        {children}
+        {rule && <p className="bx-spotlight__rule">{rule}</p>}
+        {extra}
+      </div>
+    </div>,
+    host,
+  );
 }

@@ -8,7 +8,7 @@ import { createPortal } from 'react-dom';
 import { ChaosOverlay, usePhoneHost } from './chaos';
 import {
   AnswerTile, Avatar, AVATAR_NAMES, Chips, Confetti, ErrorIcon, fmt, Heat, Hourglass, KEYS, ModBadge, Pill, Progress,
-  ReactionBar, ReactStage, signed, StartLogo, Timer, TimerAnnouncer, useShake, Window, type Float, type Key,
+  ReactionBar, ReactStage, Rain, signed, Spotlight, StartLogo, Timer, TimerAnnouncer, useShake, Window, type Float, type Key,
 } from './ds';
 import { secondsLeft, useNow, useRoom, useWakeLock, type Room, type RoomState } from './net';
 import {
@@ -189,7 +189,7 @@ function Game(p: GP) {
   let body: React.ReactNode;
   switch (v.phase) {
     case 'LOBBY': body = <Lobby {...p} />; break;
-    case 'MODIFIER': body = <ModifierScreen v={v} />; break;
+    case 'MODIFIER': body = <ModifierScreen {...p} />; break;
     case 'BET': body = <Bet {...p} />; break;
     case 'ANSWER': body = <AnswerScreen {...p} />; break;
     case 'JUDGE': body = <Judging {...p} />; break;
@@ -198,7 +198,7 @@ function Game(p: GP) {
     case 'PODIUM': body = <Podium v={v} />; break;
   }
   const hype = v.question?.hype && (v.phase === 'MODIFIER' || v.phase === 'BET' || v.phase === 'ANSWER') ? v.question.hype : null;
-  return <Phone skin={skin} calm={v.calm} shake={p.shake}>{body}{hype && <Hype text={hype} v={v} />}{p.overlay}</Phone>;
+  return <Phone skin={skin} calm={v.calm} shake={p.shake}>{body}{v.me?.rain && <Rain />}{hype && <Hype text={hype} v={v} />}{p.overlay}</Phone>;
 }
 
 /** Hype questions: confetti falls through MODIFIER → BET → ANSWER; the banner shows while the modifier
@@ -206,7 +206,7 @@ function Game(p: GP) {
 function Hype({ text, v }: { text: string; v: View }) {
   const now = useNow();
   const left = secondsLeft(v, now);
-  const banner = v.phase === 'MODIFIER' || (v.phase === 'ANSWER' && v.question && left > v.question.seconds - 3);
+  const banner = v.phase === 'ANSWER' && v.question && left > v.question.seconds - 3;
   return (
     <div className="app-hype-layer" aria-hidden={!banner}>
       <Confetti />
@@ -253,47 +253,37 @@ function Lobby({ v, room, floats }: GP) {
 
 // ---------------------------------------------------------------- modifier
 
-const MOD_LINE: Record<ModifierId, string> = {
+/** The Spotlight's one-line rule per modifier (DS › PlayerModifier). */
+const modLine = (m: ModifierId, q: number, final: boolean): string => ({
   normal: 'Right answers win your bet. Wrong answers cost nothing.',
-  double: 'No downside. This is the round for your big chip.',
-  risky: 'Wrong answers now cost you your bet. Only bet big if you are more than 50% sure.',
-  trouble: 'Wrong answers now cost you double your bet.',
-  mystery: 'The rule is a secret until after answers lock. Could be anything. (It could be bad.)',
-};
+  double: 'Right answers score DOUBLE. No downside. Bet big.',
+  risky: 'Wrong answers now cost you your bet. Only bet big if you\'re sure.',
+  trouble: final ? 'Everything on the line. Wrong answers cost you DOUBLE.' : `Q${q} is spicy. Wrong answers cost you DOUBLE your bet.`,
+  mystery: 'The rule is a secret until answers lock. It could be bad.',
+}[m]);
 
-function ModifierScreen({ v }: { v: View }) {
-  const q = v.question!;
+/** Modifier phase: the bet screen is already underneath (chips locked), and the modifier gets the Spotlight.
+ *  The bet timer starts only after it flies up (the server's MODIFIER phase is the Spotlight's 3.7s). */
+function ModifierScreen(p: GP) {
+  const { v } = p;
   const m = v.modifier ?? 'normal';
-  if (q.skin === 'bsod') {
-    return (
-      <SkinShell skin="bsod" view={v} pqStyle={{ justifyContent: 'center' }}>
-        <p>A fatal exception 0x24 has occurred at BIRTHDAY:0024. The party will be terminated after ONE FINAL QUESTION.</p>
-        <p>* {MOD_META[m].name}: {MOD_META[m].rule}.</p>
-        <p>* Press any key to bet everything.</p>
-      </SkinShell>
-    );
-  }
+  const final = v.q === v.total;
   return (
-    <SkinShell skin={q.skin} view={v} pqStyle={{ justifyContent: 'center' }} coins={v.me?.score}>
-      <section className="bx-window bx-anim-pop" data-theme="xp">
-        <div className="bx-titlebar"><span className="bx-title">Installing round modifier…</span></div>
-        <div className="bx-body bx-stack">
-          <Progress pct={100} stripes />
-          <ModBadge m={m} />
-          <p className="phone-body app-nomargin">Q{v.q} · {SKINS[q.skin].name}. {MOD_LINE[m]}</p>
-          <Heat heat={v.heat} total={v.total} />
-        </div>
-      </section>
-    </SkinShell>
+    <>
+      <Bet {...p} preview />
+      <Spotlight key={v.q} drum={final ? '★ FINAL ROUND ★' : '★ THIS ROUND IS… ★'} rule={modLine(m, v.q, final)} extra={<div style={{ width: '100%' }}><Heat heat={v.heat} total={v.total} /></div>}>
+        <ModBadge m={m} />
+      </Spotlight>
+    </>
   );
 }
 
 // ---------------------------------------------------------------- bet
 
-function Bet(p: GP) {
-  const { v, room } = p;
+function Bet(p: GP & { preview?: boolean }) {
+  const { v, room, preview } = p;
   const now = useNow();
-  const left = secondsLeft(v, now);
+  const left = preview ? 10 : secondsLeft(v, now); // during the Spotlight the bet timer hasn't started
   const me = v.me!;
   const q = v.question!;
   const [locked, setLocked] = useState(false);
@@ -330,7 +320,7 @@ function Bet(p: GP) {
           </div>
           {q.skin === 'bsod' && v.modifier && <p>* {MOD_META[v.modifier].name}: {MOD_META[v.modifier].rule}</p>}
           <Timer left={left} total={10} big />
-          <Chips available={me.chips} selected={bet} modifier={v.modifier} onPick={(c) => { setPick(c); room.act({ t: 'bet', chip: c }); play('lock'); }} />
+          <Chips available={me.chips} selected={bet} modifier={v.modifier} disabled={preview} onPick={(c) => { setPick(c); room.act({ t: 'bet', chip: c }); play('lock'); }} />
           {bet != null && v.modifier && v.modifier !== 'mystery' && (
             <p className="caption app-nomargin" style={{ opacity: 0.85 }}>Your pot {fmt(me.score)} · if wrong with {bet}: {fmt(me.score + (v.modifier === 'risky' ? -bet : v.modifier === 'trouble' ? -2 * bet : 0))}</p>
           )}
@@ -380,13 +370,23 @@ function answerLabel(v: View, a: unknown): string {
   return String(a);
 }
 
+/** A real player's name for the jokes (never a hard-coded one): someone other than me, fixed per question. */
+function pickName(v: View, salt: string): string {
+  const others = v.players.filter((p) => p.id !== v.me?.id);
+  if (!others.length) return v.me?.name ?? 'Anne';
+  let h = 0;
+  for (const c of `${salt}:${v.q}`) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  return others[h % others.length].name;
+}
+
 function useChaos(v: View, room: Room) {
   const [gone, setGone] = useState<Set<string>>(new Set());
   const ev = v.me?.chaos && !gone.has(v.me.chaos.id) ? v.me.chaos : null;
   const chope = v.me?.chope && !gone.has(v.me.chope.id) ? v.me.chope : null;
   const dismiss = (e: ChaosEvent) => { setGone((g) => new Set(g).add(e.id)); room.act({ t: 'dismiss', id: e.id, ms: Date.now() - (e.at ?? Date.now()) }); };
   const clearChope = () => { if (chope) { setGone((g) => new Set(g).add(chope.id)); room.act({ t: 'chopeClear', id: chope.id }); } };
-  return { overlay: ev ? <ChaosOverlay ev={ev} onClose={dismiss} /> : null, chopeTile: chope?.data?.tile ?? null, clearChope };
+  const sender = ev?.from ? v.players.find((p) => p.id === ev.from)?.name : undefined;
+  return { overlay: ev ? <ChaosOverlay ev={ev} onClose={dismiss} victim={pickName(v, 'victim')} sender={sender} /> : null, chopeTile: chope?.data?.tile ?? null, clearChope };
 }
 
 function AnswerScreen(p: GP) {
@@ -426,7 +426,7 @@ function AnswerScreen(p: GP) {
         </div>
         {left > 0 && <button className="bx-btn" style={{ flex: 'none' }} onClick={() => setEditing(true)}>Change answer</button>}
         <StillThinking v={v} room={room} left={left} />
-        <ReactStage floats={p.floats} style={{ flex: 1, minHeight: 60 }} />
+        <ReactStage floats={p.floats} style={{ flex: '1 1 0', minHeight: 0 }} />
         <ReactionBar onReact={(e) => room.act({ t: 'react', e })} only={5} />
       </SkinShell>
     );
@@ -464,7 +464,7 @@ function AnswerScreen(p: GP) {
     <div className="bx-chaos-zone app-zone">
       <Card skin={q.skin} n={v.q} title={`Question_${v.q}.exe — ${q.category}`}>
         {q.skin === 'brick' ? <BrickSoftkeys view={v} left={left} /> : null}
-        <QuestionText skin={q.skin} prompt={q.prompt ?? ''} />
+        <QuestionText skin={q.skin} prompt={q.prompt ?? ''} typed={q.type === 'typed'} />
         {q.type === 'fave' && <p className="caption app-nomargin" style={{ marginTop: 8, opacity: 0.85 }}>No right answer. Anne crowns her fave; +lol for anything that makes her cry-laugh.</p>}
       </Card>
       {overlay}
@@ -478,14 +478,14 @@ function AnswerScreen(p: GP) {
       {q.skin !== 'ie' && <Meta skin={q.skin} view={v} left={left} typing={q.skin === 'fakebook' ? typing : undefined} />}
       {q.skin === 'ie' && q.type === 'typed' && input}
       {q.skin === 'myspaze'
-        ? <><div className="bx-chaos-zone app-zone"><div className="bx-ms-box"><h3>Anne's Friend Space · {q.category}</h3><div style={{ padding: '10px 12px' }}><QuestionText skin="myspaze" prompt={q.prompt ?? ''} /></div></div>{overlay}</div><div className="bx-ms-box" style={{ flex: 'none' }}>{input}</div></>
+        ? <><div className="bx-chaos-zone app-zone"><div className="bx-ms-box"><h3>Anne's Friend Space · {q.category}</h3><div style={{ padding: '10px 12px' }}><QuestionText skin="myspaze" prompt={q.prompt ?? ''} /></div></div>{overlay}</div><div className="bx-ms-box app-answers-box">{input}</div></>
         : card}
       {ieTimer}
       {q.skin === 'ie' && q.type !== 'typed' && <div style={{ padding: 12, flex: 1, display: 'flex', flexDirection: 'column' }}>{input}</div>}
       {q.skin !== 'ie' && q.skin !== 'myspaze' && input}
       {lockedNote}
       {q.skin === 'xp' && q.type === 'mc' && <div style={{ display: 'flex', gap: 16, flex: 'none' }}><div className="bx-desk-icon"><svg width="28" height="28" viewBox="0 0 8 8" aria-hidden="true"><rect x="1" y="1" width="6" height="1" style={{ fill: 'var(--bevel-dark)' }} /><path d="M1.5 2h5l-.6 6H2.1z" style={{ fill: 'var(--button)' }} /></svg><span>Wrong Answers ({Math.max(0, q.seconds - left)})</span></div></div>}
-      {q.skin === 'myspaze' && <div className="bx-ms-box" style={{ padding: '8px 12px', font: '700 14px/20px var(--font-comic)', flex: 'none' }}><a href="#" onClick={(e) => e.preventDefault()}>{thinking[0]?.name ?? 'Marcus'}</a>: thanks 4 the add!!! pc4pc?</div>}
+      {q.skin === 'myspaze' && <div className="bx-ms-box" style={{ padding: '8px 12px', font: '700 14px/20px var(--font-comic)', flex: 'none' }}><a href="#" onClick={(e) => e.preventDefault()}>{thinking[0]?.name ?? pickName(v, 'pc4pc')}</a>: thanks 4 the add!!! pc4pc?</div>}
       {q.type === 'fave' && v.powerups && me.power.nudge > 0 && left > 5 && <div className="bx-pq__foot"><ReactionBar onReact={(e) => room.act({ t: 'react', e })} only={3} /><button className="bx-btn" onClick={() => setSheet('nudge')}>👉 Nudge</button></div>}
       {sheet && <PowerUps v={v} room={room} sheet={sheet} setSheet={setSheet} />}
     </SkinShell>
@@ -498,7 +498,7 @@ function StillThinking({ v, room, left }: { v: View; room: Room; left: number })
   if (!thinking.length) return null;
   const canNudge = v.powerups && me.power.nudge > 0 && left > 5;
   return (
-    <div className="bx-pq__card" style={{ padding: 0, flex: 'none', maxHeight: 170, overflowY: 'auto' }}>
+    <div className="bx-pq__card app-scroll" style={{ padding: 0, flex: '0 1 auto', minHeight: 44, maxHeight: 170 }}>
       <div className="bx-group-head">Still thinking ({thinking.length})</div>
       <ul className="bx-buddies">
         {thinking.slice(0, 6).map((pl, i) => (
@@ -517,7 +517,7 @@ function StillThinking({ v, room, left }: { v: View; room: Room; left: number })
 function Judging(p: GP) {
   const { v, room } = p;
   const q = v.question!;
-  const line = q.type === 'fave' ? 'Anne is picking her fave. Bribes are not accepted (they are).' : q.type === 'number' ? 'Anne is checking her phone. No peeking, Marcus.' : 'Anne is judging your spelling. She is very petty.';
+  const line = q.type === 'fave' ? 'Anne is picking her fave. Bribes are not accepted (they are).' : q.type === 'number' ? `Anne is checking her phone. No peeking, ${pickName(v, 'peek')}.` : 'Anne is judging your spelling. She is very petty.';
   return (
     <SkinShell skin={q.skin} view={v} coins={v.me?.score} poke={p.poke}>
       <Card skin={q.skin} n={v.q} title="Please wait…" style={{ textAlign: 'center' }}>
@@ -527,7 +527,7 @@ function Judging(p: GP) {
           {v.me?.answer != null && <p className="caption app-nomargin" style={{ opacity: 0.85 }}>You said: {answerLabel(v, v.me.answer)}</p>}
         </div>
       </Card>
-      <ReactStage floats={p.floats} style={{ flex: 1, minHeight: 60 }} />
+      <ReactStage floats={p.floats} style={{ flex: '1 1 0', minHeight: 0 }} />
       <ReactionBar onReact={(e) => room.act({ t: 'react', e })} />
     </SkinShell>
   );
@@ -548,7 +548,7 @@ function Reveal(p: GP) {
     const counts = r.split.counts;
     const correct = r.answer?.type === 'mc' ? r.answer.correct : null;
     splitBlock = (
-      <div className="bx-pq__answers app-tiles-compact" style={{ gridAutoRows: 'auto', flex: 'none' }}>
+      <div className="bx-pq__answers app-tiles-compact app-reveal-tiles">
         {(q.options ?? []).map((o, i) => {
           const mine = Number(myAns) === i && myAns != null;
           const state = correct == null ? (mine ? 'is-selected' : '') : i === correct ? 'is-correct' : mine ? 'is-wrong' : 'is-dim';
@@ -599,6 +599,14 @@ function Reveal(p: GP) {
   }
 
   let top: React.ReactNode;
+  const fave = r.answer?.type === 'fave' ? r.answer.crowned : null;
+  const spotlight = r.stepName === 'mystery' && r.resolved
+    ? <Spotlight key={`m${v.q}`} drum="★ THE MYSTERY RULE WAS… ★" rule={modLine(r.resolved, v.q, v.q === v.total)}><ModBadge m={r.resolved} /></Spotlight>
+    : r.stepName === 'answer' && fave
+      ? <Spotlight key={`f${v.q}`} drum="★ ANNE'S FAVE IS… ★" rule={`by ${fave.name}. Crowned: 2× their bet.`}>
+          <div className="bx-fave is-crowned" style={{ width: '100%', fontSize: 20, lineHeight: '26px' }}><span className="bx-fave__star">★ Fave</span>{fave.text}</div>
+        </Spotlight>
+      : null;
   if (r.stepName === 'mystery') {
     top = (
       <Card skin={q.skin} title="MYSTERY.EXE" className="bx-anim-pop" style={{ textAlign: 'center' }}>
@@ -635,6 +643,7 @@ function Reveal(p: GP) {
 
   return (
     <SkinShell skin={q.skin} view={v} coins={me.score} poke={p.poke}>
+      {spotlight}
       <div className="bx-pq__meta"><Pill>Q{v.q}/{v.total}</Pill>{me.bet != null && <Pill kind="accent">Bet {me.bet}</Pill>}{v.modifier && <ModBadge m={r.resolved ?? v.modifier} sm />}</div>
       {top}
       {r.stepName !== 'mystery' && r.stepName !== 'points' && splitBlock}
@@ -687,7 +696,7 @@ function Board({ v }: { v: View }) {
           <div className="bx-body bx-stack">
             <p className="phone-body app-nomargin">Installing <b>{SKINS[next].name}</b> skin…{left != null ? ` ${left}s` : ''}</p>
             <Progress pct={left != null ? 100 - (left / 12) * 100 : 70} stripes />
-            <p className="caption app-muted app-nomargin">Do not turn off your phone. Do not let Marcus touch your phone.</p>
+            <p className="caption app-muted app-nomargin">Do not turn off your phone. Do not let {pickName(v, 'touch')} touch your phone.</p>
           </div>
         </Window>
       )}

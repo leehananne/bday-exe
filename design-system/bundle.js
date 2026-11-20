@@ -93,6 +93,17 @@
     el.innerHTML = s;
   }
 
+  /* Preview-only: restart a one-shot animation every N ms (clone restarts CSS animations). */
+  function replay(el) {
+    var every = +el.getAttribute('data-bx-replay') || 4200, leave = +el.getAttribute('data-bx-leave') || 0, cur = el;
+    function cycle() {
+      var fresh = cur.cloneNode(true); fresh.classList.remove('is-leaving'); cur.replaceWith(fresh); cur = fresh;
+      if (leave) setTimeout(function () { cur.classList.add('is-leaving'); }, leave);
+    }
+    if (leave) setTimeout(function () { cur.classList.add('is-leaving'); }, leave);
+    setInterval(cycle, every);
+  }
+
   function mount(root) {
     root = root || document;
     root.querySelectorAll('[data-bx-shape]').forEach(function (e) { var k = e.getAttribute('data-bx-shape'); e.innerHTML = SHAPES[k] + '<span class="bx-sr">' + k.toUpperCase() + ', ' + NAMES[k] + '</span>'; });
@@ -103,6 +114,7 @@
     root.querySelectorAll('[data-bx-nudge]').forEach(nudge);
     root.querySelectorAll('[data-bx-confetti]').forEach(confetti);
     root.querySelectorAll('[data-bx-rain]').forEach(rain);
+    root.querySelectorAll('[data-bx-replay]').forEach(replay);
   }
 
   window.BDAY = { mount: mount, avatar: avatar, qr: qr, shapes: SHAPES, avatars: AV.map(function (a) { return a.n; }) };

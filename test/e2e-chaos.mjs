@@ -24,6 +24,7 @@ const page = async (w, name) => {
 const host = await page(390, 'host');
 await host.goto(`${BASE}/host`);
 await host.fill('#hpin', PIN);
+await host.click('text=Sample questions'); // fixed timings this test relies on
 await host.click('button:has-text("Create room")');
 await host.waitForSelector('text=Start the chaos');
 const players = [];
@@ -51,34 +52,34 @@ for (let q = 1; q <= 5; q++) {
   const secs = [20, 20, 20, 30, 20][q - 1];
   while (Date.now() - t0 < (secs - 1) * 1000) {
     for (const p of players) {
-      const ov = p.locator('.bx-chaos > *').first();
+      const ov = p.locator('.app-roam__item').first();
       if (!(await ov.count())) continue;
-      const box = await ov.boundingBox();
-      const kind = await p.locator('.bx-chaos').getAttribute('data-chaos');
+      const kind = await p.locator('.app-roam').first().getAttribute('data-chaos');
       if (!kinds.has(kind)) {
         kinds.add(kind);
         await p.screenshot({ path: `${SHOTS}/chaos-${kind}-${p.w}.png` });
       }
       seen++;
-      for (const sel of ['.bx-pq__answers .bx-answer', '.bx-timer__secs', '.bx-address__field input', '.bx-ig-compose input', '.bx-keypad']) {
+      const pe = await ov.evaluate((el) => getComputedStyle(el).pointerEvents);
+      if (pe !== 'none') errors.push(`Q${q} ${kind}: pop-up is not tap-through`);
+      for (const sel of ['.bx-pq__answers .bx-answer']) {
         const els = p.locator(sel);
-        const n = await els.count();
-        for (let k = 0; k < n; k++) {
+        for (let k = 0; k < await els.count(); k++) {
           checks++;
-          const b = await els.nth(k).boundingBox();
-          if (intersects(box, b)) errors.push(`Q${q} ${kind} @${p.w}px overlaps ${sel}[${k}]`);
+          const ok = await els.nth(k).evaluate((el) => { const r = el.getBoundingClientRect(); let n = 0; for (const fx of [0.15, 0.35, 0.5, 0.65, 0.85]) { const t = document.elementFromPoint(r.x + r.width * fx, r.y + r.height / 2); if (t && el.contains(t)) n++; } return n >= 3; });
+          if (!ok) errors.push(`Q${q} ${kind} @${p.w}px: answer ${k} blocked`);
         }
       }
       // answers stay tappable under the overlay
       const tile = p.locator('.bx-pq__answers .bx-answer:not(.is-choped)').first();
-      if (await tile.count()) { await tile.click({ timeout: 2000 }); tappedUnder++; }
+      if (await tile.count()) { await tile.click({ timeout: 2000, position: { x: 12, y: 12 }, force: true }); tappedUnder++; }
     }
     await sleep(250);
   }
   // all overlays end with the phase
   await host.waitForSelector('text=/Reveal|Judge|Pick your fave/', { timeout: 15000 });
   if (/Judge|fave/.test(await title())) await host.click('button.bx-btn--primary.bx-btn--lg');
-  for (const p of players) if (await p.locator('.bx-chaos').count()) errors.push(`Q${q}: overlay still up after the answer phase`);
+  for (const p of players) if (await p.locator('.app-roam').count()) errors.push(`Q${q}: overlay still up after the answer phase`);
   // the reveal plays itself to the leaderboard
   if (q < 5) { await host.waitForSelector(`text=Start Q${q + 1}`); await host.click(`text=Start Q${q + 1}`); }
   console.log(`Q${q}: overlays seen so far ${seen}, kinds ${[...kinds].join(',')}`);

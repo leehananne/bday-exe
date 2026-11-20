@@ -174,8 +174,14 @@ export function Card({ skin, n, title, children, style, className = '' }: {
 }
 
 /** Question text in the skin's voice. */
-export function QuestionText({ skin, prompt }: { skin: SkinId; prompt: string }) {
-  if (skin === 'ie') return <h1 style={{ margin: 0 }}>{prompt}</h1>;
+export function QuestionText({ skin, prompt, typed }: { skin: SkinId; prompt: string; typed?: boolean }) {
+  if (skin === 'ie') return (
+    <>
+      <div className="bx-marquee" style={{ font: '700 15px/20px var(--font-web1999)', color: 'var(--answer-a)', marginBottom: 12 }}><span>★ WELCOME 2 ANNE'S HOMEPAGE ★ SIGN MY GUESTBOOK ★ BEST VIEWED IN 800×600 ★</span></div>
+      <h1 style={{ margin: typed ? '84px 0 0' : 0 }}>{prompt}</h1>
+      <p style={{ margin: '10px 0 0', font: '400 16px/22px var(--font-web1999)' }}>{typed ? <>The host judges spelling and is <u>very</u> petty.</> : <>🚧 Under construction 🚧 <a href="#" onClick={(e) => e.preventDefault()}>Sign my guestbook!</a></>}</p>
+    </>
+  );
   if (skin === 'brick') return (
     <>
       <div style={{ borderTop: '3px solid currentColor', borderBottom: '3px solid currentColor', padding: '4px 0', font: '400 26px/28px var(--font-lcd)' }}>✉ 1 NEW MESSAGE</div>
@@ -265,29 +271,37 @@ export function TextInput({ skin, max, initial, onSubmit, label, cta }: {
 }) {
   const [v, setV] = useState(initial ?? '');
   const [focus, setFocus] = useState(false);
+  const [touched, setTouched] = useState(!!initial); // the IE pointer hint shows until the bar is tapped
   const sug = useMemo(() => (skin === 'ie' && focus ? trollSuggest(v) : []), [skin, v, focus]);
   const submit = (e?: React.FormEvent) => { e?.preventDefault(); const t = v.trim(); if (t) onSubmit(t); };
   if (skin === 'insta') {
     return (
+      <>
+      <p className="caption app-nomargin" style={{ color: 'var(--window-muted)', flex: 'none' }}>💬 All comments are hidden until the reveal. Spelling is judged by Anne.</p>
       <form className="bx-ig-compose" onSubmit={submit}>
         <input value={v} onChange={(e) => setV(e.target.value.slice(0, max))} placeholder="Add a comment…" aria-label={label} maxLength={max} enterKeyHint="send" />
         <button className="bx-btn bx-btn--primary" disabled={!v.trim()}>Post</button>
       </form>
+      </>
     );
   }
   if (skin === 'ie') {
     return (
-      <form className="bx-address" onSubmit={submit} style={{ flex: 'none' }}>
-        <label className="bx-address__label" htmlFor="addr">Address</label>
-        <div className="bx-address__field">
-          <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" style={{ fill: 'var(--highlight)' }} /><path d="M2 12h20M12 2c4 4 4 16 0 20M12 2c-4 4-4 16 0 20" style={{ fill: 'none', stroke: 'var(--on-highlight)', strokeWidth: 1.5 }} /></svg>
-          <input id="addr" value={v} onFocus={() => setFocus(true)} onBlur={() => setTimeout(() => setFocus(false), 150)} onChange={(e) => setV(e.target.value.slice(0, max))}
-            autoComplete="off" autoCapitalize="off" autoCorrect="off" spellCheck={false} placeholder="http://www.your-answer.com" aria-label={label} maxLength={max} enterKeyHint="go" />
+      <form className="bx-address bx-hint-anchor" onSubmit={submit} style={{ flex: 'none', zIndex: 4 }}>
+        <div className={`bx-address__field ${touched ? '' : 'is-beckon'}`}>
+          <input id="addr" value={v} onFocus={() => { setFocus(true); setTouched(true); }} onBlur={() => setTimeout(() => setFocus(false), 150)} onChange={(e) => setV(e.target.value.slice(0, max))}
+            autoComplete="off" autoCapitalize="off" autoCorrect="off" spellCheck={false} placeholder="type ur answer here…" aria-label="Your answer: type it in the address bar" maxLength={max} enterKeyHint="go" />
           {sug.length > 0 && (
             <ul className="bx-suggest" role="listbox">{sug.map((s, i) => <li key={s} role="option" aria-selected={i === 0}>{s}</li>)}</ul>
           )}
         </div>
         <button className="bx-btn bx-btn--primary" disabled={!v.trim()}>{cta}</button>
+        {!touched && (
+          <div className="bx-pointer" style={{ left: 56, top: 'calc(100% - 6px)' }} aria-hidden="true">
+            <svg viewBox="-1 -1 14 20"><path d="M0 0 L0 15 L3.6 11.6 L6.2 17.6 L8.8 16.5 L6.3 10.6 L11 10.6 Z" style={{ fill: 'var(--qr-paper)', stroke: 'var(--qr-ink)', strokeWidth: 1.1, strokeLinejoin: 'round' }} /></svg>
+            <span className="bx-pointer__label">TYPE UR ANSWER UP HERE!!!</span>
+          </div>
+        )}
       </form>
     );
   }

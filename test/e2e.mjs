@@ -63,7 +63,7 @@ for (let q = 1; q <= 10; q++) {
   // MODIFIER → BET
   await sleep(300);
   await players[0].screenshot({ path: `${SHOTS}/q${q}-1-modifier.png` });
-  await players[0].waitForSelector('.bx-chip', { timeout: 15000 });
+  await players[0].waitForSelector('.bx-chip:not([disabled])', { timeout: 15000 }); // after the Spotlight
   for (const [i, p] of players.entries()) {
     const chips = p.locator('.bx-chip:not([disabled])');
     await chips.nth(i === 0 ? (await chips.count()) - 1 : 0).click();

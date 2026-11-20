@@ -8,7 +8,7 @@ const BASE = process.env.BASE ?? 'http://127.0.0.1:8787';
 const SHOTS = process.env.SHOTS ?? 'screenshots/layout';
 mkdirSync(SHOTS, { recursive: true });
 const KINDS = ['scam_eyepad', 'scam_virus', 'scam_smileys', 'toto', 'fourd', 'huat', 'auntie_forward', 'auntie_chope', 'boss_email', 'bday_sale', 'melvin'];
-const ROAMING = ['fourd', 'scam_eyepad'];
+const ROAMING = KINDS.filter((k) => k !== 'auntie_chope'); // every pop-up roams the screen; the chope stays on its tile
 const intersects = (a, b) => a && b && a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height;
 const browser = await chromium.launch();
 const errors = [];
@@ -37,7 +37,12 @@ for (const w of [360, 390, 430]) {
           const tiles = page.locator('.bx-pq__answers .bx-answer');
           for (let k = 0; k < await tiles.count(); k++) {
             checks++;
-            const hit = await tiles.nth(k).evaluate((el) => { const r = el.getBoundingClientRect(); const t = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2); return !!t && el.contains(t); });
+            // tap-through: most of the tile must still take a tap (a bouncing pop-up's own button may sit over one spot)
+            const hit = await tiles.nth(k).evaluate((el) => {
+              const r = el.getBoundingClientRect(); let ok = 0;
+              for (const fx of [0.15, 0.35, 0.5, 0.65, 0.85]) { const t = document.elementFromPoint(r.x + r.width * fx, r.y + r.height / 2); if (t && el.contains(t)) ok++; }
+              return ok >= 3;
+            });
             if (!hit) errors.push(`q${q} ${kind} @${w}: tile ${k} not tappable under the roaming pop-up`);
           }
         }

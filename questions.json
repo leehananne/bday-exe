@@ -92,7 +92,7 @@
     "id": 8,
     "skin": "fakebook",
     "type": "mc",
-    "category": "Family Only",
+    "category": "Family, time to prove ur luv",
     "prompt": "What is Anne's sister's actual name?",
     "seconds": 20,
     "options": [
@@ -107,24 +107,25 @@
   {
     "id": 9,
     "skin": "insta",
-    "type": "mc",
-    "category": "Poly Only",
-    "prompt": "Where did Anne go for her poly grad trip?",
-    "seconds": 20,
-    "options": [
-      "Denmark",
+    "type": "typed",
+    "category": "Hi Adrian and Jialiang",
+    "prompt": "Where did Anne go for her poly grad trip? Comment below 👇",
+    "seconds": 30,
+    "accept": [
       "South Korea",
-      "Phuket",
-      "Batam"
+      "Korea",
+      "Seoul",
+      "S Korea",
+      "SK",
+      "Republic of Korea"
     ],
-    "answer": 1,
     "hype": "POLY FRIENDS, TIME 2 SHINE"
   },
   {
     "id": 10,
     "skin": "bsod",
     "type": "mc",
-    "category": "FINAL BOSS",
+    "category": "FINAL BOSS · uni gang, wake up",
     "prompt": "What did Anne actually study at uni? (No checking LinkedIn!1!1!!!!!)",
     "seconds": 20,
     "options": [

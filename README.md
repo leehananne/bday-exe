@@ -92,12 +92,18 @@ npm run deploy
 | `npm test` | Engine unit tests (vitest), including the reveal autopilot |
 | `node test/e2e.mjs` | Host and 3 players play all 10 questions in Chromium against `wrangler dev`, then a reload restores the same seat |
 | `node test/e2e-chaos.mjs` | Live chaos with 9 phones at 360/390/430 px: overlays never touch answers or the timer, and answers stay tappable |
+| `node test/fit.mjs` | Nothing a player taps is cut off: every screen of both question sets at 5 phone sizes (500 screens) |
 | `node test/layout.mjs` | Deterministic: all 11 chaos kinds × 10 skins × answer/waiting × 360/390/430 px |
 
-**Chaos layering.** Most pop-ups stay inside the question card and never touch the answers, input or timer (PRD §8a).
-Two deliberately break that rule for comedy: the **4D ticket** bounces around the whole screen like the DVD logo, and the
-**eyePad** pop-up sweeps up and down it. Both are the top layer but tap-through, so only their buttons catch taps and
-the answers underneath always work. In Calm mode or with reduced motion they sit still in the middle.
+**Chaos.** On *Chaos* intensity every player gets hit on 6–7 of Q2–Q9 (Mild: 3–4), a different random set per player,
+never the same pop-up twice (mercy rule: whoever is last is skipped that question). Every pop-up **bounces around the whole
+screen** as the top layer (the eyePad sweeps up and down); the boss email and the 12.3 sale dodge the first close and jump
+somewhere else. Pop-ups are tap-through except their ×, so answers underneath always work. Huat Ah!'s red packets keep
+raining until answers lock. The Auntie chope stays on its tile. Calm mode / reduced motion: pop-ups sit still.
+
+**Spotlight.** Each round modifier is revealed with the design system's Spotlight (dim, beams, slam-in, fly-up) over the
+bet screen; the bet timer starts only after it leaves (the modifier phase is 3.7s). The MYSTERY rule and the crowned
+Host's Fave get it too.
 
 **Fonts.** Numbers use Press Start 2P (`public/fonts/`, SIL Open Font License, see `OFL.txt`).
 

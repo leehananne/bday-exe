@@ -54,24 +54,36 @@ function ScamFrame({ title, prize, children, cta, onClose, tinyX, timer }: {
   );
 }
 
-export function ChaosOverlay({ ev, onClose }: { ev: ChaosEvent; onClose: (ev: ChaosEvent) => void }) {
+/** Pop-ups that dodge the first close: they jump somewhere else on screen and only close on the second tap. */
+const REOPEN: ChaosKind[] = ['boss_email', 'bday_sale'];
+
+export function ChaosOverlay({ ev, onClose, victim = 'your friend', sender }: {
+  ev: ChaosEvent; onClose: (ev: ChaosEvent) => void;
+  /** A real player's name for the copy ("Scanning will not remove viruses or Jo"). */
+  victim?: string;
+  /** Who sent a player pop-up (power-up), if any. */
+  sender?: string;
+}) {
   const shown = useRef(Date.now());
-  const close = () => onClose(ev);
+  const [dodges, setDodges] = useState(0);
+  const reallyClose = () => onClose(ev);
+  const close = () => (REOPEN.includes(ev.kind) && dodges === 0 ? setDodges(1) : reallyClose());
   useEffect(() => {
     shown.current = Date.now();
-    const esc = (e: KeyboardEvent) => { if (e.key === 'Escape') close(); };
+    setDodges(0);
+    const esc = (e: KeyboardEvent) => { if (e.key === 'Escape') reallyClose(); }; // Escape always closes
     window.addEventListener('keydown', esc);
     return () => window.removeEventListener('keydown', esc);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ev.id]);
-  const sender = ev.from ? <p className="bx-scam__fine">Sent by: a friend (allegedly).</p> : null;
+  const from = ev.from ? <p className="bx-scam__fine">Sent by: {sender ?? 'a friend'} (allegedly).</p> : null;
   let body: React.ReactNode;
   switch (ev.kind) {
     case 'scam_eyepad':
       body = (
         <ScamFrame title="!!! CONGRATULATIONS !!!" prize={<span style={{ fontSize: 15 }}>FREE</span>} cta="CLAIM NOW" onClose={close} tinyX timer>
           <p><b>You won a FREE eyePad Pro Max!!</b></p><p>You are the 1,000,000th visitor to this birthday.</p>
-          <p className="bx-scam__fine">*eyePad is a drawing of an eyePad. Terms apply. No terms exist.</p>{sender}
+          <p className="bx-scam__fine">*eyePad is a drawing of an eyePad. Terms apply. No terms exist.</p>{from}
         </ScamFrame>
       );
       break;
@@ -79,7 +91,7 @@ export function ChaosOverlay({ ev, onClose }: { ev: ChaosEvent; onClose: (ev: Ch
       body = (
         <ScamFrame title="SecurityCenter 2006" prize="!" cta="SCAN NOW" onClose={close}>
           <p><b>Your phone has 24 viruses.</b></p><p>One for every year Anne has been alive. Scan now?</p>
-          <p className="bx-scam__fine">Scanning will not remove viruses or Marcus.</p>{sender}
+          <p className="bx-scam__fine">Scanning will not remove viruses or {victim}.</p>{from}
         </ScamFrame>
       );
       break;
@@ -87,7 +99,7 @@ export function ChaosOverlay({ ev, onClose }: { ev: ChaosEvent; onClose: (ev: Ch
       body = (
         <ScamFrame title="FREE SMILEYS!!" prize=":)" cta="DOWNLOAD" onClose={close}>
           <p><b>10,000 smileys for your Mezzenger!</b></p><p>Definitely not a virus.</p>
-          <p className="bx-scam__fine">Smileys may contain smileys.</p>{sender}
+          <p className="bx-scam__fine">Smileys may contain smileys.</p>{from}
         </ScamFrame>
       );
       break;
@@ -170,14 +182,13 @@ export function ChaosOverlay({ ev, onClose }: { ev: ChaosEvent; onClose: (ev: Ch
   return (
     <>
       <span className="bx-sr" aria-live="polite">Pop-up: {ANNOUNCE[ev.kind]}. Close button available.</span>
-      {ev.kind === 'huat' && <PhoneRain />}
-      {ROAM[ev.kind] ? <Roam mode={ROAM[ev.kind]!} id={ev.id}>{body}</Roam> : <FitZone kind={ev.kind}>{body}</FitZone>}
+      <Roam mode={ev.kind === 'scam_eyepad' ? 'sweep' : 'dvd'} id={ev.id} kind={ev.kind} jump={dodges}>
+        {dodges > 0 && <span className="app-dodge" aria-hidden="true">nice try :P</span>}
+        {body}
+      </Roam>
     </>
   );
 }
-
-/** Pop-ups that leave the card zone and roam the whole screen as the top layer (tap-through except buttons). */
-const ROAM: Partial<Record<ChaosKind, 'dvd' | 'sweep'>> = { fourd: 'dvd', scam_eyepad: 'sweep' };
 
 /** The phone element, found after mount (it isn't in the document during the first render). */
 export function usePhoneHost(): HTMLElement | null {
@@ -192,23 +203,39 @@ function PhoneRain() {
   return host ? createPortal(<Rain />, host) : null;
 }
 
-/** dvd: bounces off the screen edges like the DVD logo. sweep: glides up and down the screen.
- *  Calm mode / reduced motion: parked in the middle, no movement. */
-function Roam({ mode, id, children }: { mode: 'dvd' | 'sweep'; id: string; children: React.ReactNode }) {
+/** Every chaos pop-up roams the whole screen as the top layer. It is tap-through except its own buttons,
+ *  so answers underneath always work. dvd: bounces off the edges like the DVD logo. sweep: glides up and
+ *  down. `jump` changes → it teleports somewhere new (the "closing reopens it" troll). Scaled down to fit
+ *  small screens. Calm mode / reduced motion: parked in the middle, still. */
+function Roam({ mode, id, kind, jump, children }: { mode: 'dvd' | 'sweep'; id: string; kind: ChaosKind; jump: number; children: React.ReactNode }) {
   const host = usePhoneHost();
   const stage = useRef<HTMLDivElement>(null);
   const item = useRef<HTMLDivElement>(null);
+  const jumpRef = useRef(jump);
   useEffect(() => {
     const el = item.current, box = stage.current;
     if (!el || !box) return;
     const still = !!box.closest('.bx-calm') || matchMedia('(prefers-reduced-motion: reduce)').matches;
-    let x = 0, y = 0, vx = 95, vy = 125, raf = 0, last = performance.now();
-    const t0 = last, seed = id.length % 4;
-    let first = true;
+    let seed = 0;
+    for (const c of id + kind) seed = (seed * 31 + c.charCodeAt(0)) >>> 0;
+    const rand = () => { seed = (seed * 1103515245 + 12345) >>> 0; return seed / 4294967296; };
+    const speed = 85 + rand() * 50;
+    const ang = 0.5 + rand() * 0.6;
+    let vx = speed * Math.cos(ang) * (rand() < 0.5 ? -1 : 1), vy = speed * Math.sin(ang) * (rand() < 0.5 ? -1 : 1);
+    let x = 0, y = 0, raf = 0, last = performance.now(), first = true, seenJump = jumpRef.current;
+    const t0 = last;
     const frame = (now: number) => {
-      const W = box.clientWidth, H = box.clientHeight, w = el.offsetWidth, h = el.offsetHeight;
+      const W = box.clientWidth, H = box.clientHeight;
+      const s = Math.min(1, (W * 0.92) / Math.max(1, el.offsetWidth), (H * 0.62) / Math.max(1, el.offsetHeight));
+      const w = el.offsetWidth * s, h = el.offsetHeight * s;
       const maxX = Math.max(0, W - w), maxY = Math.max(0, H - h);
-      if (first) { x = still || mode === 'sweep' ? maxX / 2 : (maxX * (seed + 1)) / 5; y = still ? maxY / 2 : mode === 'sweep' ? 0 : maxY / 3; first = false; }
+      if (first || seenJump !== jumpRef.current) {
+        seenJump = jumpRef.current;
+        x = still || mode === 'sweep' ? maxX / 2 : rand() * maxX;
+        y = still ? maxY / 2 : rand() * maxY;
+        if (!first) { vx = -vx; vy = -vy; }
+        first = false;
+      }
       const dt = Math.min(0.05, (now - last) / 1000);
       last = now;
       if (!still) {
@@ -221,15 +248,16 @@ function Roam({ mode, id, children }: { mode: 'dvd' | 'sweep'; id: string; child
           y = maxY * (0.5 - 0.5 * Math.cos(((now - t0) / 2600) * Math.PI)); // top → bottom → top, 2.6s each way
         }
       }
-      el.style.transform = `translate(${Math.round(x)}px, ${Math.round(y)}px)`;
+      el.style.transform = `translate(${Math.round(x)}px, ${Math.round(y)}px) scale(${s.toFixed(3)})`;
       raf = requestAnimationFrame(frame);
     };
     raf = requestAnimationFrame(frame);
     return () => cancelAnimationFrame(raf);
-  }, [host, mode, id]);
+  }, [host, mode, id, kind]);
+  useEffect(() => { jumpRef.current = jump; }, [jump]);
   if (!host) return null;
   return createPortal(
-    <div className="app-roam" ref={stage} data-chaos-roam={mode}>
+    <div className="app-roam bx-chaos" data-chaos={kind} data-chaos-roam={mode} ref={stage}>
       <div className="app-roam__item" ref={item}>{children}</div>
     </div>,
     host,
@@ -237,31 +265,3 @@ function Roam({ mode, id, children }: { mode: 'dvd' | 'sweep'; id: string; child
 }
 
 export const shownMs = (ev: ChaosEvent, now: number) => Math.max(0, now - ev.at);
-
-/** Layering contract: the overlay may cover the card zone but never spill onto answers/input/timer.
- *  If an overlay is taller than its zone, scale it down to fit (top-anchored). */
-function FitZone({ kind, children }: { kind: ChaosKind; children: React.ReactNode }) {
-  const outer = useRef<HTMLDivElement>(null);
-  const inner = useRef<HTMLDivElement>(null);
-  const [scale, setScale] = useState(1);
-  useLayoutEffect(() => {
-    const zone = outer.current?.parentElement;
-    const el = inner.current;
-    if (!zone || !el) return;
-    const fit = () => {
-      const h = el.scrollHeight, w = el.scrollWidth;
-      const zh = zone.clientHeight - 4, zw = zone.clientWidth + 8; // .bx-chaos starts 6px above the zone; keep a margin below it
-      setScale(Math.min(1, zh / Math.max(1, h), zw / Math.max(1, w)));
-    };
-    fit();
-    const ro = new ResizeObserver(fit);
-    ro.observe(zone);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, [kind]);
-  return (
-    <div className="bx-chaos" data-chaos={kind} ref={outer}>
-      <div ref={inner} style={{ transform: scale < 1 ? `scale(${scale})` : undefined, transformOrigin: 'top center' }}>{children}</div>
-    </div>
-  );
-}

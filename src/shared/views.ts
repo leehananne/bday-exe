@@ -46,6 +46,8 @@ export interface MeView {
   power: { nudge: number; popup: number };
   score: number; rank: number;
   chaos: ChaosEvent | null; chope: ChaosEvent | null;
+  /** Huat Ah! fired for me this question: red packets keep raining until answers lock. */
+  rain: boolean;
   result: { outcome: Outcome; delta: number } | null;
   report: Report | null;
 }
@@ -273,6 +275,7 @@ export function viewFor(s: GameState, who: { role: 'host' } | { role: 'player'; 
         score: mine?.score ?? 0, rank: mine?.rank ?? st.length,
         chaos: s.phase === 'ANSWER' ? activeChaosFor(s, p.id) : null,
         chope: s.phase === 'ANSWER' ? chopeFor(s, p.id) : null,
+        rain: s.phase === 'ANSWER' && s.chaosQueue.some((e) => e.player === p.id && e.kind === 'huat' && e.fired),
         result: pts && p.id in pts.outcome ? { outcome: pts.outcome[p.id], delta: pts.delta[p.id] } : null,
         report: s.phase === 'PODIUM' && mine ? report(s, p.id, mine.rank, mine.score) : null,
       };

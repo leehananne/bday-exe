@@ -90,7 +90,14 @@ button.bx-key:focus-visible { outline: 3px solid var(--focus); outline-offset: 2
 
 /* Chaos card zone: reserves room so overlays can cover the question card without reaching the
    answers, input or timer (PRD §8a layering contract). The card stretches to fill it. */
-.app-zone { flex: none; min-height: min(300px, 36dvh); display: flex; flex-direction: column; }
+/* The zone and the answers share the leftover height; the zone never drops below 140px (pop-ups scale to fit it),
+   answer tiles never below 48px (the minimum tap target). Nothing a player taps can be pushed off-screen. */
+.app-zone { flex: 1 1 0; min-height: 140px; display: flex; flex-direction: column; }
+.bx-pq__answers { min-height: 0; }
+.bx-pq__answers .bx-answer { min-height: 48px; }
+.bx-pq > * { flex-shrink: 0; }
+.bx-pq > .app-zone, .bx-pq > .bx-pq__answers, .bx-pq > .app-answers-box { flex-shrink: 1; }
+.app-answers-box { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; }
 .app-zone > :not(.bx-chaos):not(.bx-sr) { flex: 1 1 auto !important; }
 .app-zone > .bx-window > .bx-body { flex: 1; display: flex; flex-direction: column; justify-content: center; }
 .app-zone > .bx-pq__card { display: flex; flex-direction: column; justify-content: center; }
@@ -159,3 +166,33 @@ button.bx-key:focus-visible { outline: 3px solid var(--focus); outline-offset: 2
 
 /* Fakebook: in the card zone the chat message sits at the bottom, like the newest message in a chat */
 .app-zone > .app-fb-msg { align-items: flex-end !important; }
+
+/* Reveal: tiles are read-only, so they may compress to fit (down to 34px) instead of running off-screen */
+.app-reveal-tiles { flex: 1 1 0; min-height: 0; grid-auto-rows: minmax(34px, 1fr); }
+.app-reveal-tiles .bx-answer { min-height: 34px; padding-top: 4px; padding-bottom: 4px; }
+.app-reveal-tiles .bx-answer__key { width: 30px; height: 30px; }
+/* Waiting: the card zone gives way first so the reaction bar always stays on screen */
+.bx-pq .app-zone:has(+ .bx-btn) { flex: 0 1 auto; min-height: 120px; }
+/* Internet Exploder: the address field shrinks so "Go" never pokes off the right edge */
+.bx-address .bx-address__field { min-width: 0; }
+.bx-address > .bx-btn { flex: none; }
+@media (max-width: 400px) { .bx-address .bx-address__label { display: none; } }
+
+/* Every chaos pop-up roams; reset the card-zone positioning the design system gives .bx-chaos */
+.app-roam.bx-chaos { position: absolute; inset: 0; z-index: 44; }
+.app-roam__item { transform-origin: 0 0; }
+.app-roam__item .bx-toto { width: min(330px, calc(100vw - 24px)); }
+.app-roam__item .bx-huat, .app-roam__item .bx-forward, .app-roam__item .bx-ask, .app-roam__item .bx-sale { width: min(320px, calc(100vw - 24px)); }
+.app-roam__item .bx-mail { width: min(330px, calc(100vw - 24px)); }
+.app-dodge { position: absolute; z-index: 3; top: -14px; right: 8px; padding: 2px 8px; font: 700 13px/18px var(--font-comic);
+  background: var(--favourite); color: var(--on-favourite); border: 2px solid var(--frame); border-radius: var(--radius-pill); transform: rotate(4deg); }
+
+/* Inputs inside address-style fields never push their window wider than the screen (host real-number box) */
+.bx-address__field { min-width: 0; }
+.bx-address__field input { width: 100%; }
+.bx-stack > * { min-width: 0; }
+
+/* Roaming pop-ups: only the close × catches a tap. Their joke buttons (CLAIM ALL, Reply, SCAN NOW) are decorative
+   so a bouncing pop-up can never block an answer. */
+.app-roam__item button { pointer-events: none; }
+.app-roam__item .bx-chaos__x, .app-roam__item .bx-ctl--close { pointer-events: auto; }
