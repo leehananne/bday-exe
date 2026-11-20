@@ -204,6 +204,6 @@ button.bx-key:focus-visible { outline: 3px solid var(--focus); outline-offset: 2
    phone). The sky gradient underneath only shows if the image fails to load. */
 .skin-xp {
   background:
-    url("/wallpaper.png") center center / auto 100% no-repeat,
+    url("/wallpaper.jpg") center center / auto 100% no-repeat,
     linear-gradient(180deg, #1d56d2 0%, #4f83e8 55%, #9bb5f0 100%);
 }
