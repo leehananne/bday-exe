@@ -110,7 +110,7 @@ export const StartLogo = ({ size = 18 }: { size?: number }) => (
 );
 
 export const ErrorIcon = ({ size = 40 }: { size?: number }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" style={{ fill: 'var(--wrong)' }} /><path d="M7 7l10 10M17 7 7 17" style={{ stroke: 'var(--on-wrong)', strokeWidth: 3 }} /></svg>
+  <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" style={{ flex: 'none' }}><circle cx="12" cy="12" r="11" style={{ fill: 'var(--wrong)' }} /><path d="M7 7l10 10M17 7 7 17" style={{ stroke: 'var(--on-wrong)', strokeWidth: 3 }} /></svg>
 );
 
 // ---------------------------------------------------------------- timer

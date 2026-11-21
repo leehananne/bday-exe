@@ -222,3 +222,6 @@ button.bx-key:focus-visible { outline: 3px solid var(--focus); outline-offset: 2
 .bx-podium-sm .blk { font-family: var(--font-num); font-size: 18px; font-weight: 400; }
 .bx-podium-sm > div > span:not(.bx-avatar) { font-variant-numeric: tabular-nums; }
 .bx-xl__tabs span[role="button"] { cursor: pointer; }
+
+/* "Yes but louder" on the wrong-answer pop-up: the dialog shouts back, then closes */
+.app-loud { justify-content: center; font: 700 40px/48px var(--font-bubbly); letter-spacing: 1px; padding: 16px 8px; }

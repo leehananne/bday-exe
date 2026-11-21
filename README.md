@@ -89,6 +89,12 @@ shown but inert, as the PRD marks them as a stretch goal.
 
 Preview with bots: `/dev/preview?set=party&phase=PODIUM&players=15&me=p9` (`players` 5–20, `as=host` for the host view).
 
+## Wrong-answer pop-ups
+
+A wrong answer gets one of 12 Windows-style error pop-ups (Windows Update, Error 404, Recycle Bin, Auntie.exe…).
+Each player starts at a different point in the list, so nobody sees the same one twice in a game and phones side by side differ.
+Most have **Yes** / **Yes but louder**: louder makes the dialog wobble, buzz the phone and shout **YES!!!** before closing.
+
 ## Multiple answers
 
 On **typed** and **Host's Fave** questions players can send as many answers as they like (up to 20, no exact repeats):

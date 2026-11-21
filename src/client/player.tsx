@@ -90,9 +90,34 @@ function Toast({ msg }: { msg: string }) {
 }
 
 /** "Illegal operation" troll dialog after a wrong answer: the top layer, with the screen dimmed behind it. */
-function WrongModal({ name }: { name: string }) {
+/** Wrong-answer pop-ups (README: troll second buttons are fine — "OK :(", "Yes but louder"). Each player walks the
+ *  list from their own starting point, so a game never repeats one and phones next to each other differ. */
+type Wrong = { title: string; bold: string; line: string; ok: string; loud?: string };
+const WRONG: ((name: string, lost: string) => Wrong)[] = [
+  (n) => ({ title: `${n}.exe`, bold: 'Your answer has performed an illegal operation and will be shut down.', line: 'If the problem persists, study harder.', ok: 'OK :(' }),
+  () => ({ title: 'Windows Update', bold: 'Your knowledge of Anne is out of date.', line: 'Install updates now?', ok: 'Yes', loud: 'Yes but louder' }),
+  () => ({ title: 'Error 404', bold: 'Correct answer not found.', line: 'Did you mean: literally any other option?', ok: 'Yes', loud: 'Yes but louder' }),
+  (_, l) => ({ title: 'Recycle Bin', bold: `Are you sure you want to permanently delete ${l}?`, line: "(Too late. It's gone.)", ok: 'Yes', loud: 'Yes but louder' }),
+  () => ({ title: 'Help', bold: "It looks like you're guessing.", line: 'Would you like help? (No help is available.)', ok: 'Yes', loud: 'Yes but louder' }),
+  () => ({ title: 'Low Disk Space', bold: 'You are running very low on Anne knowledge.', line: 'Free up space by forgetting your own birthday?', ok: 'Yes', loud: 'Yes but louder' }),
+  () => ({ title: 'Virus Scan', bold: 'Threat detected: wrong_answer.exe', line: 'Quarantine your confidence?', ok: 'Yes', loud: 'Yes but louder' }),
+  () => ({ title: 'Auntie.exe', bold: 'Wah, like that also can wrong ah?', line: 'Your mother know or not?', ok: 'Sorry auntie' }),
+  () => ({ title: 'Connection Lost', bold: 'Your brain has disconnected from the server.', line: 'Reconnect?', ok: 'Yes', loud: 'Yes but louder' }),
+  (_, l) => ({ title: 'Disk Cleanup', bold: `BDAY.EXE has freed up ${l} for you.`, line: "You're welcome.", ok: 'OK :(' }),
+  () => ({ title: 'Friendship.exe', bold: 'Friendship.exe is not responding.', line: 'Wait for it to respond?', ok: 'Yes', loud: 'Yes but louder' }),
+  () => ({ title: 'Fatal Exception', bold: 'A fatal exception 0E has occurred at YOUR_GUESS:0024.', line: 'Press any key to feel bad.', ok: 'Any key' }),
+];
+function wrongCopy(name: string, q: number, delta: number): Wrong {
+  let h = 0; for (const c of name) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  const lost = delta < 0 ? `${fmt(-delta)} chips` : 'your dignity';
+  return WRONG[(h + q) % WRONG.length](name, lost);
+}
+
+function WrongModal({ name, q, delta }: { name: string; q: number; delta: number }) {
   const [open, setOpen] = useState(false);
+  const [loud, setLoud] = useState(false);
   const host = usePhoneHost();
+  const c = wrongCopy(name, q, delta);
   useEffect(() => { const t = setTimeout(() => setOpen(true), 700); return () => clearTimeout(t); }, []); // let the +0 land first
   useEffect(() => {
     if (!open) return;
@@ -100,13 +125,22 @@ function WrongModal({ name }: { name: string }) {
     window.addEventListener('keydown', esc);
     return () => window.removeEventListener('keydown', esc);
   }, [open]);
+  useEffect(() => { if (!loud) return; const t = setTimeout(() => setOpen(false), 1100); return () => clearTimeout(t); }, [loud]);
+  const shout = () => { navigator.vibrate?.([40, 40, 120]); setLoud(true); };
   if (!open || !host) return null;
   return createPortal(
     <div className="app-modal" onClick={(e) => { if (e.target === e.currentTarget) setOpen(false); }}>
-      <section className="bx-window bx-dialog bx-anim-pop" data-theme="xp" role="alertdialog" aria-modal="true" aria-label={`${name}.exe`}>
-        <div className="bx-titlebar"><span className="bx-title">{name}.exe</span><button className="bx-ctl bx-ctl--close" aria-label="Close" onClick={() => setOpen(false)}>×</button></div>
-        <div className="bx-dialog__body"><ErrorIcon size={32} /><div><p><b>Your answer has performed an illegal operation and will be shut down.</b></p><p>If the problem persists, study harder.</p></div></div>
-        <div className="bx-dialog__actions"><button className="bx-btn bx-btn--primary" autoFocus onClick={() => setOpen(false)}>OK :(</button></div>
+      <section className={`bx-window bx-dialog ${loud ? 'bx-anim-wobble' : 'bx-anim-pop'}`} data-theme="xp" role="alertdialog" aria-modal="true" aria-label={c.title}>
+        <div className="bx-titlebar"><span className="bx-title">{c.title}</span><button className="bx-ctl bx-ctl--close" aria-label="Close" onClick={() => setOpen(false)}>×</button></div>
+        {loud
+          ? <div className="bx-dialog__body app-loud" aria-live="assertive">YES!!!</div>
+          : <div className="bx-dialog__body"><ErrorIcon size={32} /><div><p><b>{c.bold}</b></p><p>{c.line}</p></div></div>}
+        {!loud && (
+          <div className="bx-dialog__actions">
+            <button className="bx-btn bx-btn--primary" autoFocus onClick={() => setOpen(false)}>{c.ok}</button>
+            {c.loud && <button className="bx-btn" onClick={shout}>{c.loud}</button>}
+          </div>
+        )}
       </section>
     </div>,
     host,
@@ -654,7 +688,7 @@ function Reveal(p: GP) {
             {rankNow && <p className="caption app-nomargin" style={{ opacity: 0.9 }}>Total {rankNow.score < 0 ? `IN DEBT ▼ ${signed(rankNow.score)}` : fmt(rankNow.score)} · You're #{rankNow.rank}{rankNow.moved ? ` (${rankNow.moved > 0 ? '▲' : '▼'}${Math.abs(rankNow.moved)})` : ''}</p>}
           </div>
         </Card>
-        {!good && me.result.outcome === 'wrong' && q.skin !== 'bsod' && <WrongModal key={v.q} name={me.name} />}
+        {!good && me.result.outcome === 'wrong' && q.skin !== 'bsod' && <WrongModal key={v.q} name={me.name} q={v.q} delta={d} />}
       </>
     );
   } else if (r.stepName === 'points') {
